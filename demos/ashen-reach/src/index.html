@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#162324"><meta name="description" content="苍岚之境，一场关于山谷、遗迹与石卫的第三人称动作冒险。">
+  <title>苍岚之境 · Ashen Reach</title>
+  <link rel="icon" href="./crest.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./hud.css"><link rel="stylesheet" href="./panels.css">
+</head>
+<body>
+  <svg id="symbols" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <symbol id="ic-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 1v3m0 16v3M1 12h3m16 0h3M4 4l2 2m12 12 2 2M20 4l-2 2M6 18l-2 2"/></symbol>
+      <symbol id="ic-mouse" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="7"/><path d="M12 2v8M5 10h14"/></symbol>
+      <symbol id="ic-settings" viewBox="0 0 24 24"><path d="m10 3 .5-1h3l.5 2 2 .9 1.8-.8 2.1 2.1-.8 1.9.8 2 2.1.6v3l-2.1.6-.8 2 .8 1.9-2.1 2.1-1.8-.8-2 .9-.5 2h-3l-.6-2-2-.9-1.8.8L4 17.1l.8-1.9-.8-2-2-.6v-3l2-.6.8-2L4 5.1 6.1 3l1.8.8L10 3Z" transform="translate(1.2 .9) scale(.91)"/><circle cx="12" cy="12" r="3.2"/></symbol>
+    </defs>
+  </svg>
+  <main class="stage">
+    <canvas id="world" aria-label="苍岚之境第三人称游戏世界" tabindex="0"></canvas>
+    <div class="vignette"></div>
+    <section class="hud" id="hud" aria-label="冒险界面">
+      <button class="profile" data-open="character" title="打开角色与属性 [C]" aria-label="打开角色与属性">
+        <span class="portrait"><img src="./art/painted/hero.webp" alt=""><b id="lv-disc">1</b></span>
+        <span class="vitals"><span class="nameplate"><strong>岚行者</strong><em>角色 <kbd>C</kbd></em></span>
+          <span class="bar hp"><i id="hpbar"></i><small id="hpnum"></small></span>
+          <span class="bar stamina"><i id="stbar"></i><small id="stnum"></small></span>
+          <span class="xp"><span>EXP</span><span class="xpbar"><i id="xpbar"></i></span></span>
+        </span>
+      </button>
+      <div class="compass" aria-hidden="true"><div class="compass-strip" id="compass-strip"></div><i class="northpin"></i><i id="objective-bearing" hidden></i></div>
+      <div class="field-kit">
+        <button class="radar" data-open="map" title="打开地图 [M]" aria-label="打开世界地图">
+          <span class="radar-frame"><span class="map-n">N</span><span class="map-bg"><img src="./art/map.svg" alt=""><span id="map-marks"></span><i id="map-objective" hidden></i><b id="map-player"></b></span><span class="radar-m"><kbd>M</kbd></span></span>
+          <span class="radar-caption"><svg><use href="#ic-sun"/></svg> 世界地图</span>
+        </button>
+        <button class="gear" data-open="pause" title="设置与暂停 [Esc]" aria-label="设置与暂停"><svg aria-hidden="true"><use href="#ic-settings"/></svg><span>设置</span></button>
+        <div class="field-tools" aria-label="冒险工具">
+          <button class="field-tool" data-open="inventory" aria-label="打开行囊" title="打开行囊与装备 [I]"><span class="tool-medal"><img src="./art/painted/bag.webp" alt=""></span><span class="tool-name">行囊 <kbd>I</kbd></span></button>
+          <button class="field-tool" data-open="skills" aria-label="打开技能" title="打开技能书 [K]"><span class="tool-medal"><img src="./art/painted/book.webp" alt=""></span><span class="tool-name">技能 <kbd>K</kbd></span></button>
+        </div>
+      </div>
+      <button class="quest" data-open="journal" title="打开任务日志 [L]" aria-label="打开任务日志"><img class="quest-token" src="./art/painted/journal.webp" alt=""><span class="quest-info"><span class="quest-head">任务日志 <kbd>L</kbd><span class="hairline"></span><small>QUEST</small></span>
+        <span class="quest-row"><strong id="quest-title">古道的守卫</strong><small id="quest-distance" title="当前目标距离"></small></span><span class="quest-object"><span class="quest-dot"></span><span id="quest-desc"></span><b id="quest-progress"></b></span></span>
+      </button>
+      <div class="tags" id="tags" aria-hidden="true"></div><div class="fx-text" id="fx-text" aria-hidden="true"></div>
+      <div class="toasts" id="toasts" role="status"></div><button id="pickup" data-act="pickup" hidden><kbd>E</kbd> <span></span></button>
+      <div class="location"><div class="location-eyebrow"><span class="flourish"></span><span id="region-kicker">REGION &nbsp; 01</span><i></i></div>
+        <div id="region-title">苍岚古道</div><div class="location-sub" id="region-en">THE ASHEN WAY</div>
+      </div>
+      <div class="hotbar" aria-label="战斗动作">
+        <div class="bar-cap"><i></i><span>战斗技艺</span><i></i></div>
+        <div class="slots">
+          <button class="slot primary" data-act="attack" title="挥剑攻击 [J / 鼠标左键]"><span class="slot-art"><img src="./art/painted/attack.webp" alt=""><b class="keycap">1</b><i class="cd"></i></span><span class="slot-label">普通攻击</span></button>
+          <button class="slot" data-act="skill" title="释放破风斩 [2]"><span class="slot-art"><img src="./art/painted/gale.webp" alt=""><b class="keycap">2</b><i class="cd"></i></span><span class="slot-label">破风斩</span></button>
+          <button class="slot" data-act="heal" title="使用药水 [3]"><span class="slot-art"><img src="./art/painted/potion.webp" alt=""><b class="keycap">3</b><i class="cd"></i><small id="pot-count"></small></span><span class="slot-label">生命药水</span></button>
+          <button class="slot" data-act="quake" title="释放震地击 [4]" hidden><span class="slot-art"><img src="./art/painted/quake.webp" alt=""><b class="keycap">4</b><i class="cd"></i></span><span class="slot-label">震地击</span></button>
+          <span class="slot-divider"></span>
+          <button class="slot" data-act="dodge" title="翻滚闪避 [空格]"><span class="slot-art"><img src="./art/painted/dodge.webp" alt=""><b class="keycap wide">空格</b><i class="cd"></i></span><span class="slot-label">闪避</span></button>
+        </div>
+      </div>
+      <div id="fps-meter" hidden aria-label="渲染性能"><b id="fps-value">—</b> FPS <i></i> <span id="ms-value">—</span> ms</div>
+      <div class="controls" hidden aria-label="操作提示">
+        <span class="touch-hint">左侧摇杆移动 · 拖动画面转向</span>
+        <span><span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></span>移动</span>
+        <span><span><svg><use href="#ic-mouse"/></svg> 拖动</span>转动视角</span>
+        <span><span><kbd>Shift</kbd></span>疾跑</span>
+      </div>
+      <div class="joystick" id="stick" aria-label="虚拟移动摇杆"><i></i></div>
+    </section>
+    <div id="loader"><img src="./crest.svg" alt=""><p>正在进入苍岚古道…</p><span>ASHEN REACH</span></div>
+    <div id="outcome" hidden></div>
+  </main>
+  <div id="panels"></div>
+  <script type="module" src="./main.js"></script>
+</body>
+</html>

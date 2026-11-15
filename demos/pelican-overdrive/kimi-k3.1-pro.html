@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>PELICAN // OVERDRIVE</title>
+<style>
+  :root{color-scheme:dark;--cyan:#78efff;--orange:#ff6338}
+  *{box-sizing:border-box}
+  html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#030608}
+  body{display:grid;place-items:center;font-family:Consolas,"Liberation Mono",monospace}
+  .stage{position:relative;width:min(100vw,177.7778vh);height:min(100vh,56.25vw);overflow:hidden;background:#070d13;isolation:isolate;--boost:0}
+  svg{display:block;width:100%;height:100%;touch-action:manipulation}
+  .brand{position:absolute;z-index:2;top:4.6%;left:4%;color:#d9e5e5;font-size:clamp(8px,1.05vw,16px);font-weight:600;letter-spacing:.25em;line-height:1;text-shadow:0 1px 8px #000;user-select:none;pointer-events:none}
+  .brand::before{content:"";display:inline-block;width:1.8em;height:.36em;margin-right:1.1em;background:var(--orange);box-shadow:.55em 0 0 #52616a;vertical-align:.15em}
+  #boost{position:absolute;z-index:3;right:3.6%;bottom:5.2%;appearance:none;border:1px solid #65818a;background:rgba(5,13,18,.78);color:#d9f5f5;padding:.85em 1.35em .78em;font:700 clamp(8px,.85vw,13px)/1 Consolas,"Liberation Mono",monospace;letter-spacing:.2em;cursor:pointer;clip-path:polygon(0 0,calc(100% - 11px) 0,100% 11px,100% 100%,11px 100%,0 calc(100% - 11px));transition:color .18s,border-color .18s,background .18s,transform .18s;backdrop-filter:blur(5px)}
+  #boost::before{content:"";display:inline-block;width:.52em;height:.52em;margin-right:.8em;background:#78efff;box-shadow:0 0 calc(5px + var(--boost)*12px) #45ddff;vertical-align:.04em}
+  #boost:hover,#boost:focus-visible{outline:none;border-color:#a2f5ff;color:white;background:rgba(13,35,42,.9)}
+  #boost:active{transform:translateY(1px)}
+  #boost.active{color:#fff4e8;border-color:#ff8157;background:rgba(71,27,18,.82)}
+  #boost.active::before{background:#ff7042;box-shadow:0 0 15px #ff532d}
+  @media(max-aspect-ratio:4/3){.brand{font-size:clamp(7px,1.8vw,12px)}#boost{font-size:clamp(7px,1.5vw,11px)}}
+</style>
+</head>
+<body>
+<main class="stage" id="stage">
+  <div class="brand">PELICAN // OVERDRIVE</div>
+  <svg id="scene" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid meet" role="img" aria-label="一只未来机甲鹈鹕以竞速姿态骑自行车，双脚踩踏， BOOST 时反应炉与尾焰增强">
+    <defs>
+      <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#050a11"/><stop offset=".58" stop-color="#101c27"/><stop offset="1" stop-color="#17252c"/></linearGradient>
+      <linearGradient id="road" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#202b31"/><stop offset=".2" stop-color="#0d151b"/><stop offset="1" stop-color="#05090d"/></linearGradient>
+      <linearGradient id="ceramic" x1=".15" y1="0" x2=".8" y2="1"><stop stop-color="#fbfff8"/><stop offset=".25" stop-color="#dce5e1"/><stop offset=".58" stop-color="#9fadb0"/><stop offset=".76" stop-color="#e2e8e3"/><stop offset="1" stop-color="#718087"/></linearGradient>
+      <linearGradient id="ceramicDark" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#b7c2c0"/><stop offset=".5" stop-color="#68777e"/><stop offset="1" stop-color="#303d45"/></linearGradient>
+      <linearGradient id="gun" x1="0" y1="0" x2=".8" y2="1"><stop stop-color="#596872"/><stop offset=".22" stop-color="#27343d"/><stop offset=".7" stop-color="#101920"/><stop offset="1" stop-color="#41515a"/></linearGradient>
+      <linearGradient id="blackMetal" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#26343b"/><stop offset=".5" stop-color="#080e13"/><stop offset="1" stop-color="#1b292f"/></linearGradient>
+      <linearGradient id="orange" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ffb06b"/><stop offset=".35" stop-color="#ff653b"/><stop offset="1" stop-color="#a82d20"/></linearGradient>
+      <linearGradient id="beakTop" x1="0" y1="0" x2=".2" y2="1"><stop stop-color="#f5f5e9"/><stop offset=".42" stop-color="#b6c3c0"/><stop offset=".55" stop-color="#66767b"/><stop offset="1" stop-color="#26343b"/></linearGradient>
+      <linearGradient id="pouchGlass" x1="0" y1="0" x2=".6" y2="1"><stop stop-color="#94e9ec" stop-opacity=".26"/><stop offset=".45" stop-color="#1a6471" stop-opacity=".48"/><stop offset="1" stop-color="#071c28" stop-opacity=".9"/></linearGradient>
+      <radialGradient id="core"><stop stop-color="#f2ffff"/><stop offset=".2" stop-color="#9cffff"/><stop offset=".52" stop-color="#24cfe4"/><stop offset="1" stop-color="#08758a"/></radialGradient>
+      <linearGradient id="flame" x1="1" y1="0" x2="0" y2="0"><stop stop-color="#efffff"/><stop offset=".2" stop-color="#65edff"/><stop offset=".58" stop-color="#ff7848"/><stop offset="1" stop-color="#ff3d20" stop-opacity="0"/></linearGradient>
+      <radialGradient id="vignette"><stop offset=".55" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".58"/></radialGradient>
+      <filter id="glow" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="7" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      <filter id="smallGlow" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      <filter id="blur"><feGaussianBlur stdDeviation="11"/></filter>
+      <filter id="soft"><feGaussianBlur stdDeviation="3"/></filter>
+      <clipPath id="pouchClip"><path d="M1071 276 C1200 286 1340 306 1481 318 C1422 379 1280 410 1170 373 C1114 354 1082 319 1071 276Z"/></clipPath>
+      <g id="bolt"><circle r="4.2" fill="#111b21" stroke="#8b9a9d" stroke-width="1.2"/><path d="M-2 0H2" stroke="#a9b6b5" stroke-width="1"/></g>
+      <g id="joint"><circle r="21" fill="url(#blackMetal)" stroke="#72838a" stroke-width="3"/><circle r="12" fill="#18252c" stroke="#9aa8aa" stroke-width="2"/><circle r="5" fill="#83edf3"/></g>
+    </defs>
+
+    <!-- Deep elevated speedway -->
+    <path d="M0 0H1600V900H0Z" fill="url(#sky)"/>
+    <path d="M0 520C370 475 1020 470 1600 505V640H0Z" fill="#33525b" opacity=".09"/>
+    <g opacity=".38" stroke="#7bc6d0" stroke-width="1">
+      <path d="M40 181H235M1290 127H1540M0 349H180M1360 390H1600" opacity=".22"/>
+      <path d="M310 92H346M1240 67H1272M150 284H172M1450 229H1490" opacity=".5"/>
+    </g>
+    <g id="farCityA" opacity=".45"></g><g id="farCityB" opacity=".45"></g>
+    <path d="M0 584H1600" stroke="#75cbd2" stroke-width="2" opacity=".13"/>
+    <g id="midCityA"></g><g id="midCityB"></g>
+    <g fill="none" stroke="#293c45" stroke-width="8" opacity=".75">
+      <path d="M0 603H1600M0 615H1600"/><path d="M120 570V654M510 570V654M920 570V654M1380 570V654"/>
+    </g>
+    <path d="M0 645L1600 615V900H0Z" fill="url(#road)"/>
+    <path d="M0 654L1600 625" stroke="#7f9aa0" stroke-width="3" opacity=".34"/>
+    <path d="M0 666L1600 637" stroke="#03070a" stroke-width="12" opacity=".8"/>
+    <g id="roadFlow"></g>
+    <g opacity=".26" stroke="#6c858c" stroke-width="2"><path d="M0 887L1600 841"/><path d="M0 867L1600 826" opacity=".35"/></g>
+    <g id="speedLines" stroke-linecap="round"></g>
+
+    <!-- Grounded shadows and restrained reflections -->
+    <g fill="#000" opacity=".72" filter="url(#blur)"><ellipse cx="462" cy="852" rx="204" ry="20"/><ellipse cx="1160" cy="852" rx="204" ry="20"/><ellipse cx="814" cy="849" rx="360" ry="19"/></g>
+    <g opacity=".2" filter="url(#soft)">
+      <path d="M325 862L590 858L548 900H365Z" fill="#4fc4ce"/><path d="M1030 858L1290 852L1244 900H1070Z" fill="#4fc4ce"/>
+      <path d="M690 860L940 852L1050 900H760Z" fill="#d5e8df" opacity=".26"/>
+    </g>
+
+    <!-- Rear boost exhaust, behind the rider -->
+    <g id="boostFlame" opacity="0" transform="translate(525 424)">
+      <path d="M0-18C-75-33-152-24-240 0C-151 17-74 29 0 17Z" fill="url(#flame)" filter="url(#glow)"/>
+      <path d="M0-8C-68-11-122-5-181 1C-113 9-57 12 0 8Z" fill="#c9ffff" opacity=".88"/>
+      <path d="M-32-25L-126-39M-46 25L-156 42" stroke="#ff7545" stroke-width="3" opacity=".7"/>
+    </g>
+
+    <!-- Wheels: far rims create the slight 3/4 depth -->
+    <g id="rearWheel" transform="translate(460 674)">
+      <circle cx="-11" cy="-8" r="165" fill="none" stroke="#03070a" stroke-width="29"/>
+      <circle cx="-11" cy="-8" r="143" fill="none" stroke="#26363e" stroke-width="6"/>
+      <circle r="165" fill="#071016" fill-opacity=".12" stroke="#070b0f" stroke-width="30"/>
+      <g id="rearSpin">
+        <circle r="165" fill="none" stroke="#4a555a" stroke-width="20" stroke-dasharray="2 15" opacity=".58"/>
+        <circle r="145" fill="none" stroke="#87999d" stroke-width="5"/>
+        <circle r="137" fill="none" stroke="#263840" stroke-width="9"/>
+        <g id="rearSpokes" stroke="#809298" stroke-width="2" opacity=".72"></g>
+        <circle r="55" fill="none" stroke="#52666d" stroke-width="8" stroke-dasharray="16 9"/>
+        <path d="M-12-160L8-160L17-145L-5-143Z" fill="url(#orange)"/>
+        <path d="M122 77L135 61" stroke="#b9ffff" stroke-width="5"/>
+      </g>
+      <circle r="26" fill="url(#gun)" stroke="#8a9b9e" stroke-width="3"/><circle r="9" fill="#a4b4b4"/>
+      <path d="M-48-38L-31-58L-13-48L-24-25Z" fill="url(#orange)" stroke="#1c282e" stroke-width="3"/>
+    </g>
+    <g id="frontWheel" transform="translate(1160 674)">
+      <circle cx="-11" cy="-8" r="165" fill="none" stroke="#03070a" stroke-width="29"/>
+      <circle cx="-11" cy="-8" r="143" fill="none" stroke="#26363e" stroke-width="6"/>
+      <circle r="165" fill="#071016" fill-opacity=".12" stroke="#070b0f" stroke-width="30"/>
+      <g id="frontSpin">
+        <circle r="165" fill="none" stroke="#4a555a" stroke-width="20" stroke-dasharray="2 15" opacity=".58"/>
+        <circle r="145" fill="none" stroke="#87999d" stroke-width="5"/>
+        <circle r="137" fill="none" stroke="#263840" stroke-width="9"/>
+        <g id="frontSpokes" stroke="#809298" stroke-width="2" opacity=".72"></g>
+        <circle r="61" fill="none" stroke="#5a6e74" stroke-width="9" stroke-dasharray="13 8"/>
+        <path d="M-12-160L8-160L17-145L-5-143Z" fill="url(#orange)"/>
+        <path d="M122 77L135 61" stroke="#b9ffff" stroke-width="5"/>
+      </g>
+      <circle r="26" fill="url(#gun)" stroke="#8a9b9e" stroke-width="3"/><circle r="9" fill="#a4b4b4"/>
+      <path d="M-54-45L-40-64L-19-56L-24-31Z" fill="url(#ceramicDark)" stroke="#1c282e" stroke-width="3"/>
+    </g>
+
+    <!-- Chain, rear cog and frame -->
+    <path id="chainBed" d="M460 650L770 617A51 51 0 0 1 770 719L460 698A24 24 0 0 1 460 650Z" fill="none" stroke="#05090c" stroke-width="10" stroke-linejoin="round"/>
+    <path id="chain" d="M460 650L770 617A51 51 0 0 1 770 719L460 698A24 24 0 0 1 460 650Z" fill="none" stroke="#9aaba9" stroke-width="5" stroke-dasharray="9 6" stroke-linejoin="round"/>
+    <g transform="translate(460 674)"><g id="rearCogSpin"><circle r="25" fill="#15232a" stroke="#a0afae" stroke-width="5" stroke-dasharray="4 3"/><path d="M-20 0H20M0-20V20M-14-14L14 14M14-14L-14 14" stroke="#657980" stroke-width="3"/></g></g>
+    <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M450 666L635 465L760 660L450 666M635 465L1038 444L1068 512L760 660M1068 512L1150 668" stroke="#050a0e" stroke-width="25"/>
+      <path d="M460 674L648 472L770 668L460 674M648 472L1050 452L1078 520L770 668M1078 520L1160 674" stroke="url(#gun)" stroke-width="17"/>
+      <path d="M475 653L640 487M663 481L752 642M790 645L1061 517M677 474L1028 458" stroke="#9aabad" stroke-width="3" opacity=".55"/>
+      <path d="M1061 512L1149 664" stroke="#d4ded9" stroke-width="7"/>
+      <path d="M1050 452L1047 412L1015 401M1047 412L1100 429L1114 421" stroke="#101a21" stroke-width="18"/>
+      <path d="M1050 452L1047 412L1015 401M1047 412L1100 429L1114 421" stroke="#75878d" stroke-width="9"/>
+      <path d="M1004 400L1028 405M1095 429L1120 422" stroke="#d5ddd8" stroke-width="13"/>
+    </g>
+    <path d="M597 466L616 450L680 452L709 466L688 478L617 477Z" fill="url(#blackMetal)" stroke="#829398" stroke-width="3"/>
+    <path d="M631 456L675 458" stroke="#ff7046" stroke-width="4"/>
+    <path d="M678 491L715 557" stroke="#ff6640" stroke-width="7" opacity=".8"/>
+    <path d="M945 506L1026 478" stroke="#d7e1dc" stroke-width="7" opacity=".45"/>
+
+    <!-- Far crank and far leg -->
+    <g transform="translate(770 668)"><g id="farCrankSpin" opacity=".62"><path d="M0 0H82" stroke="#0a1117" stroke-width="16"/><path d="M0 0H82" stroke="#596a70" stroke-width="8"/><circle cx="82" r="10" fill="#8a9b9d"/></g></g>
+    <g id="farPedal" opacity=".72"><path d="M-34 0H34" stroke="#060b0f" stroke-width="12"/><path d="M-31-3H31" stroke="#73848a" stroke-width="5"/><path d="M-24-8V5M24-8V5" stroke="#a4b1b0" stroke-width="3"/></g>
+    <g id="farLeg" opacity=".72">
+      <path id="farLegCable" fill="none" stroke="#243d48" stroke-width="8"/>
+      <g id="farUpper"><path d="M0-17L27-27L145-21L170-9V11L32 22L0 12Z" fill="url(#ceramicDark)" stroke="#17242b" stroke-width="4"/><path d="M28-12H138L151 0L35 9Z" fill="#25343c"/><path d="M40 17L142 10" stroke="#cfddd8" stroke-width="3"/><path d="M28-30L142-25" stroke="#788b91" stroke-width="6"/></g>
+      <g id="farLower"><path d="M0-15L25-23L161-16L190-7V9L27 20L0 12Z" fill="url(#gun)" stroke="#101920" stroke-width="4"/><path d="M35-13L155-9L173 0L44 8Z" fill="#72848a"/><path d="M35 15L158 9" stroke="#b9cac8" stroke-width="3"/><path d="M20-27H145" stroke="#344b56" stroke-width="7"/></g>
+      <g id="farKnee"><use href="#joint"/></g>
+      <g id="farFoot"><path d="M-42-34L-13-42L10-26L61-17L70-4H-38Z" fill="url(#ceramicDark)" stroke="#152129" stroke-width="4"/><path d="M-35-5H69" stroke="#0a1117" stroke-width="5"/><path d="M38-17L49-29M52-14L64-24" stroke="#778b90" stroke-width="4"/></g>
+    </g>
+
+    <!-- Main bicycle frame highlights -->
+    <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M460 674L648 472L770 668L460 674M648 472L1050 452L1078 520L770 668" stroke="#0a1116" stroke-width="20"/>
+      <path d="M460 674L648 472L770 668M648 472L1050 452L1078 520L770 668" stroke="url(#ceramicDark)" stroke-width="11"/>
+      <path d="M666 478L1027 460M790 650L1060 522" stroke="#e5eee6" stroke-width="3" opacity=".68"/>
+    </g>
+    <path d="M738 626L762 610L798 642L782 665Z" fill="url(#orange)" opacity=".9"/>
+
+    <!-- Near crank, chainring and near leg -->
+    <g transform="translate(770 668)"><g id="chainringSpin">
+      <circle r="54" fill="#0b151b" stroke="#a3b2b1" stroke-width="7" stroke-dasharray="5 3"/>
+      <circle r="42" fill="none" stroke="#3e535c" stroke-width="5"/>
+      <path d="M0 0L0-40M0 0L38-12M0 0L24 32M0 0L-24 32M0 0L-38-12" stroke="#82979c" stroke-width="8"/>
+      <circle r="14" fill="url(#gun)" stroke="#c0ceca" stroke-width="3"/>
+    </g></g>
+    <g transform="translate(770 668)"><g id="nearCrankSpin"><path d="M0 0H82" stroke="#080e13" stroke-width="19"/><path d="M0 0H82" stroke="url(#ceramic)" stroke-width="11"/><path d="M12-3H69" stroke="#f1f5e9" stroke-width="2"/><circle cx="82" r="11" fill="#a8b8b7" stroke="#15242b" stroke-width="3"/></g></g>
+    <g id="nearPedal"><path d="M-36 0H36" stroke="#050a0e" stroke-width="13"/><path d="M-33-3H33" stroke="#9badae" stroke-width="6"/><path d="M-26-9V5M26-9V5" stroke="#d5dfd9" stroke-width="3"/><path d="M-15-7H15" stroke="#ff7548" stroke-width="3"/></g>
+    <g id="nearLeg">
+      <path id="nearLegCable" fill="none" stroke="#071117" stroke-width="11"/>
+      <path id="nearLegCableHi" fill="none" stroke="#4e7d88" stroke-width="3"/>
+      <g id="nearUpper"><path d="M0-18L26-30L143-23L170-10V12L34 25L0 13Z" fill="url(#ceramic)" stroke="#142129" stroke-width="4"/><path d="M26-13L138-14L153-1L38 9Z" fill="url(#gun)"/><path d="M42 17L142 9" stroke="#f0f5eb" stroke-width="4"/><path d="M25-32L144-26" stroke="#72868d" stroke-width="8"/><path d="M28-32L137-27" stroke="#c4d4d1" stroke-width="2"/><path d="M88-23L110-22L100 18L78 20Z" fill="url(#orange)"/><use href="#bolt" x="24" y="2"/><use href="#bolt" x="145" y="0"/></g>
+      <g id="nearLower"><path d="M0-16L25-25L161-17L190-8V10L28 22L0 12Z" fill="url(#gun)" stroke="#101a21" stroke-width="4"/><path d="M33-14L155-10L174 0L43 10Z" fill="url(#ceramic)"/><path d="M42-7L147-5" stroke="#f5f8ec" stroke-width="3"/><path d="M36 16L158 9" stroke="#9db1b2" stroke-width="4"/><path d="M18-29H145" stroke="#182a34" stroke-width="9"/><path d="M22-29H137" stroke="#8ca4a9" stroke-width="3"/><path d="M108-15L128-13L122 12L102 14Z" fill="#d84b31"/><use href="#bolt" x="23" y="1"/><use href="#bolt" x="164" y="0"/></g>
+      <g id="nearKnee"><use href="#joint"/><path d="M-12-17L11-17L17-7L-16-5Z" fill="url(#orange)"/></g>
+      <g id="nearFoot"><path d="M-42-34L-13-43L11-27L61-17L70-4H-38Z" fill="url(#ceramic)" stroke="#142129" stroke-width="4"/><path d="M-29-31L-8-34L10-20L42-16L30-7L-24-8Z" fill="url(#gun)"/><path d="M-36-5H69" stroke="#080f14" stroke-width="5"/><path d="M37-17L49-31M51-14L64-25M61-10L72-18" stroke="#d5e2dc" stroke-width="4"/><path d="M-14-42L-6-53L12-48L14-31" fill="none" stroke="#7f959a" stroke-width="7"/><path d="M10-22L28-19" stroke="#ff7045" stroke-width="5"/></g>
+    </g>
+
+    <!-- Far wing, locked to the far grip -->
+    <g id="farWing" opacity=".68">
+      <g id="farWingUpper"><path d="M0-22L28-32L103-22L125-8V12L28 25L0 13Z" fill="url(#ceramicDark)" stroke="#142129" stroke-width="4"/><path d="M20-12L101-10L111 2L29 10Z" fill="#23343d"/></g>
+      <g id="farWingLower"><path d="M0-15L20-21L113-14L135-5V9L23 18L0 10Z" fill="url(#gun)" stroke="#101a20" stroke-width="4"/><path d="M28-9L112-6" stroke="#a5b8b8" stroke-width="5"/></g>
+      <g id="farWingElbow"><use href="#joint"/></g>
+    </g>
+
+    <!-- Avian body, layered metal feathers and neck -->
+    <g id="bodyAssembly">
+      <g id="tailFeathers">
+        <g id="tailA"><path d="M638 366L509 323L354 326L477 365L601 403Z" fill="url(#ceramicDark)" stroke="#142129" stroke-width="4"/><path d="M493 339L389 337L480 355" fill="#d8e2dd" opacity=".55"/></g>
+        <g id="tailB"><path d="M626 389L492 363L335 385L478 407L608 424Z" fill="url(#gun)" stroke="#111c23" stroke-width="4"/><path d="M477 385L373 389L482 398" stroke="#9dafb0" stroke-width="3"/></g>
+        <g id="tailC"><path d="M625 414L512 405L391 447L524 443L640 439Z" fill="url(#ceramicDark)" stroke="#142129" stroke-width="4"/><path d="M506 425L433 441L522 434" fill="#e0e8df" opacity=".45"/></g>
+      </g>
+      <g transform="translate(526 423)"><path d="M-18-28L25-24L43-6L32 23L-17 27L-36 5Z" fill="url(#gun)" stroke="#83979a" stroke-width="4"/><ellipse cx="-21" cy="0" rx="18" ry="25" fill="#071118" stroke="#a1b0ad" stroke-width="4"/><ellipse cx="-24" cy="0" rx="9" ry="15" fill="#30cfe0" opacity=".65"/></g>
+      <path d="M568 414C587 339 692 291 824 292C930 292 1002 330 1021 390C1039 450 935 503 789 516C671 526 574 486 568 414Z" fill="url(#blackMetal)" stroke="#070d12" stroke-width="8"/>
+      <path d="M589 400C620 330 719 305 825 309C903 312 964 337 985 375C943 361 887 361 824 373C728 392 661 424 604 451C586 438 581 420 589 400Z" fill="url(#ceramic)" stroke="#26343a" stroke-width="4"/>
+      <path d="M604 452C682 409 752 389 840 378C901 370 950 375 991 393C977 445 887 482 786 493C705 502 639 484 604 452Z" fill="url(#ceramicDark)" stroke="#233139" stroke-width="4"/>
+      <path d="M635 456C711 427 801 405 916 403C890 446 810 470 727 469Z" fill="url(#gun)"/>
+      <path d="M620 365C676 325 738 313 805 316" fill="none" stroke="#fffff4" stroke-width="7" opacity=".62"/>
+      <path d="M624 459C702 488 830 472 914 435" fill="none" stroke="#d8e3dc" stroke-width="3" opacity=".43"/>
+      <g id="backFeathers">
+        <g id="featherA"><path d="M882 326C806 292 718 286 633 315L715 336L836 353Z" fill="url(#ceramic)" stroke="#26353b" stroke-width="4"/><path d="M676 316L809 329" stroke="#ffffff" stroke-width="3" opacity=".55"/></g>
+        <g id="featherB"><path d="M846 351C764 321 671 329 594 365L690 373L804 382Z" fill="url(#ceramicDark)" stroke="#1c2a32" stroke-width="4"/><path d="M636 359L777 357" stroke="#cfdbd7" stroke-width="3"/></g>
+        <g id="featherC"><path d="M807 385C723 359 642 374 577 411L672 412L765 415Z" fill="url(#ceramic)" stroke="#233139" stroke-width="4"/><path d="M619 400L746 392" stroke="#f4f7ed" stroke-width="3" opacity=".6"/></g>
+        <g id="featherD"><path d="M760 422C685 403 622 421 583 449L657 452L733 447Z" fill="url(#gun)" stroke="#16242b" stroke-width="4"/><path d="M621 441L708 429" stroke="#8da4a8" stroke-width="3"/></g>
+      </g>
+      <path d="M721 307L741 292L788 295L803 310L772 322L736 320Z" fill="url(#orange)"/>
+      <path d="M603 421L626 401L650 407L638 435L612 443Z" fill="#18262e" stroke="#a4b3b1" stroke-width="3"/>
+      <use href="#bolt" x="655" y="346"/><use href="#bolt" x="818" y="338"/><use href="#bolt" x="630" y="457"/><use href="#bolt" x="904" y="418"/>
+      <g id="chestReactor" transform="translate(922 414)">
+        <path d="M-48-30L-14-49L30-38L48-4L27 35L-17 43L-48 15Z" fill="url(#blackMetal)" stroke="#8fa3a5" stroke-width="4"/>
+        <circle r="31" fill="#071a22" stroke="#426772" stroke-width="5"/>
+        <g id="chestSpin"><path d="M0-26L7-13L23-13L15 0L22 15L6 14L0 27L-8 13L-24 12L-15-2L-22-16L-6-14Z" fill="none" stroke="#7debf2" stroke-width="4"/></g>
+        <circle id="chestGlow" r="16" fill="url(#core)" filter="url(#glow)"/>
+        <circle r="7" fill="#eaffff"/>
+      </g>
+      <!-- Long avian neck, armored in overlapping collars -->
+      <path d="M917 369C941 327 955 275 982 240C1000 218 1030 217 1053 236L1070 276C1027 299 1014 342 1000 397Z" fill="url(#blackMetal)" stroke="#111e25" stroke-width="6"/>
+      <path d="M948 349C958 308 974 264 997 238C1015 221 1043 229 1055 248C1021 275 1005 319 995 363Z" fill="url(#ceramic)" stroke="#34434a" stroke-width="4"/>
+      <path d="M950 331L1008 347L997 374L938 360ZM965 294L1021 308L1011 332L956 319ZM984 257L1040 273L1027 295L974 282Z" fill="url(#ceramicDark)" stroke="#26353c" stroke-width="3"/>
+      <path id="neckCable" d="M933 371C927 318 963 260 994 232" fill="none" stroke="#071117" stroke-width="12"/>
+      <path id="neckCableHi" d="M933 371C927 318 963 260 994 232" fill="none" stroke="#4d7b85" stroke-width="3"/>
+      <path d="M1004 240L1022 220L1043 227L1034 248Z" fill="url(#orange)"/>
+      <!-- Head and rear-swept cranial feathers -->
+      <g id="head">
+        <path d="M1010 191L964 153L969 194L938 178L963 222Z" fill="url(#ceramicDark)" stroke="#1b2930" stroke-width="4"/>
+        <path d="M1002 174L985 127L1020 159L1024 122L1045 163Z" fill="url(#gun)" stroke="#17252c" stroke-width="4"/>
+        <path d="M985 232C967 194 984 151 1027 136C1075 119 1120 146 1135 187C1148 223 1127 263 1084 282L1041 298L1003 275Z" fill="url(#ceramic)" stroke="#1b2930" stroke-width="5"/>
+        <path d="M997 206C1003 165 1040 145 1080 153C1106 158 1122 174 1128 195C1090 180 1040 187 997 206Z" fill="#f7f8ed" opacity=".67"/>
+        <path d="M1000 239C1034 212 1082 199 1129 205L1133 232C1090 233 1050 251 1022 277Z" fill="url(#gun)"/>
+        <path d="M1010 262L1054 246L1081 263L1061 286L1037 294Z" fill="url(#ceramicDark)" stroke="#27363c" stroke-width="3"/>
+        <path d="M1054 184L1104 179L1120 197L1101 215L1052 211L1037 198Z" fill="#111e25" stroke="#73898e" stroke-width="3"/>
+        <path d="M1064 191L1097 188L1107 197L1095 206L1062 204Z" fill="#092d37"/>
+        <circle id="eyeGlow" cx="1085" cy="197" r="7" fill="#a9ffff" filter="url(#smallGlow)"/><circle cx="1087" cy="196" r="2.5" fill="white"/>
+        <path d="M1023 159L1038 145L1067 143" fill="none" stroke="#fff" stroke-width="4" opacity=".65"/>
+        <path d="M986 222L1008 217L1015 240L995 250Z" fill="url(#orange)"/>
+        <use href="#bolt" x="1020" y="270"/><use href="#bolt" x="1110" y="236"/>
+      </g>
+      <!-- Translucent throat pouch and aircraft-fairing bill -->
+      <path d="M1071 276C1200 286 1340 306 1481 318C1422 379 1280 410 1170 373C1114 354 1082 319 1071 276Z" fill="url(#pouchGlass)" stroke="#6c959c" stroke-width="4"/>
+      <g clip-path="url(#pouchClip)">
+        <path d="M1080 298C1200 320 1331 333 1457 332M1103 339C1219 373 1342 369 1418 349" fill="none" stroke="#80dce1" stroke-width="2" opacity=".32"/>
+        <path d="M1120 279L1165 382M1260 297L1280 395M1380 310L1360 379" stroke="#8ed4d7" stroke-width="3" opacity=".22"/>
+        <g id="pouchCore" transform="translate(1212 332)">
+          <circle id="pouchGlow" r="57" fill="#19c8dd" opacity=".18" filter="url(#glow)"/>
+          <path d="M-57-20L-28-50L19-54L55-22L58 19L25 50L-25 47L-57 18Z" fill="#082832" stroke="#6fdde5" stroke-width="4"/>
+          <g id="pouchSpin"><circle r="40" fill="none" stroke="#8ff7fa" stroke-width="6" stroke-dasharray="19 10"/><path d="M-32-32L32 32M32-32L-32 32" stroke="#237c8b" stroke-width="5"/></g>
+          <circle r="27" fill="url(#core)" filter="url(#smallGlow)"/><path d="M-11-8L0-19L13-6L9 13L-8 16L-16 2Z" fill="#dcffff"/>
+        </g>
+      </g>
+      <path d="M1080 214C1210 214 1388 246 1500 285L1481 318C1332 303 1200 282 1070 276L1048 247Z" fill="url(#beakTop)" stroke="#1d2b32" stroke-width="5"/>
+      <path d="M1092 226C1225 228 1367 253 1468 282" fill="none" stroke="#fffff3" stroke-width="7" opacity=".72"/>
+      <path d="M1080 259C1209 262 1344 282 1479 306" fill="none" stroke="#17262e" stroke-width="5"/>
+      <path d="M1147 221L1160 276M1266 231L1274 289M1380 254L1378 302" stroke="#586a70" stroke-width="3"/>
+      <path d="M1170 229L1237 237L1228 256L1165 250Z" fill="url(#gun)"/>
+      <path d="M1291 247L1355 260L1347 278L1288 269Z" fill="#23363e"/>
+      <path d="M1425 266L1500 285L1481 318L1412 309Z" fill="url(#orange)"/>
+      <path d="M1461 283L1486 291" stroke="#ffd0a0" stroke-width="4"/>
+      <path d="M1071 276C1090 348 1154 387 1236 392C1333 398 1428 361 1481 318" fill="none" stroke="#14272f" stroke-width="9"/>
+      <path d="M1080 293C1107 352 1163 377 1238 381C1321 385 1400 357 1454 331" fill="none" stroke="#b4d4d2" stroke-width="3" opacity=".68"/>
+      <path d="M1091 278L1124 303L1110 328L1084 305Z" fill="url(#ceramicDark)" stroke="#1a2a31" stroke-width="3"/>
+      <use href="#bolt" x="1102" y="244"/><use href="#bolt" x="1402" y="290"/>
+    </g>
+
+    <!-- Near wing: articulated feathers and a gripping wing-tip -->
+    <g id="nearWing">
+      <path id="nearWingCable" fill="none" stroke="#09151b" stroke-width="10"/>
+      <g id="nearWingUpper">
+        <path d="M0-24L29-34L103-23L125-9V13L30 27L0 14Z" fill="url(#ceramic)" stroke="#142129" stroke-width="4"/>
+        <path d="M20-13L101-11L113 2L29 12Z" fill="url(#gun)"/>
+        <path d="M28-29L11-52L49-34L58-50L79-28" fill="url(#ceramicDark)" stroke="#1b2b32" stroke-width="3"/>
+        <path d="M34-20L91-16" stroke="#f5f8ef" stroke-width="4"/>
+        <path d="M64-25L83-21L75 20L56 22Z" fill="url(#orange)"/>
+        <use href="#bolt" x="22" y="1"/><use href="#bolt" x="103" y="0"/>
+      </g>
+      <g id="nearWingLower">
+        <path d="M0-16L21-23L112-15L135-6V10L24 20L0 11Z" fill="url(#gun)" stroke="#101a21" stroke-width="4"/>
+        <path d="M25-11L109-8L124 0L34 9Z" fill="url(#ceramic)"/>
+        <path d="M33-5L106-4" stroke="#f2f6eb" stroke-width="3"/>
+        <path d="M15-26L104-20" stroke="#58717b" stroke-width="7"/>
+        <path d="M19-26L97-21" stroke="#b2c9c9" stroke-width="2"/>
+      </g>
+      <g id="nearWingElbow"><use href="#joint"/></g>
+    </g>
+    <g transform="translate(1030 405) rotate(12)" opacity=".75"><path d="M-17-12L8-16L24-5L15 9L-12 11Z" fill="url(#ceramicDark)" stroke="#17262d" stroke-width="3"/><path d="M6 5C16 19 30 17 34 5M-4 8C2 23 15 25 22 13" fill="none" stroke="#a8bcbb" stroke-width="5"/></g>
+    <g transform="translate(1102 427) rotate(-8)"><path d="M-20-15L8-18L25-5L16 11L-14 12Z" fill="url(#ceramic)" stroke="#17262d" stroke-width="3"/><path d="M7 6C16 22 32 18 35 4M-5 9C1 25 17 26 23 13M-14 6C-12 19-2 23 7 18" fill="none" stroke="#d6e3dd" stroke-width="5"/><path d="M-9-12L9-13" stroke="#ff7146" stroke-width="4"/></g>
+
+    <!-- Sparse tire sparks -->
+    <g id="sparks" stroke-linecap="round"></g>
+    <path d="M0 0H1600V900H0Z" fill="url(#vignette)" pointer-events="none"/>
+    <path d="M20 78V20H78M1522 20H1580V78M20 822V880H78M1522 880H1580V822" fill="none" stroke="#90b9bd" stroke-width="2" opacity=".16" pointer-events="none"/>
+  </svg>
+  <button id="boost" type="button" aria-label="BOOST，或按空格键">BOOST</button>
+</main>
+<script>
+(()=>{
+'use strict';
+const $=id=>document.getElementById(id),NS='http://www.w3.org/2000/svg';
+const el=(name,attrs,parent)=>{const n=document.createElementNS(NS,name);for(const k in attrs)n.setAttribute(k,attrs[k]);if(parent)parent.appendChild(n);return n};
+const rad=180/Math.PI,BB={x:770,y:668},CR=82,L1=170,L2=190;
+let seed=731;const rnd=()=>{seed=(seed*16807)%2147483647;return(seed-1)/2147483646};
+
+// Repeated skyline modules: no assets, and each layer follows a different parallax rate.
+function city(id,base,count,color,windows,scale){
+  const g=$(id);let x=-40;
+  for(let i=0;i<count&&x<1660;i++){
+    const w=(38+rnd()*72)*scale,h=(55+rnd()*210)*scale,y=base-h;
+    el('path',{d:`M${x} ${base}V${y+12}L${x+w*.18} ${y}H${x+w*.8}L${x+w} ${y+14}V${base}Z`,fill:color},g);
+    if(rnd()>.55)el('path',{d:`M${x+w*.5} ${y}V${y-24*scale}`,stroke:color,'stroke-width':3*scale},g);
+    for(let yy=y+20*scale;yy<base-12;yy+=20*scale)for(let xx=x+12*scale;xx<x+w-8;xx+=17*scale){if(rnd()>.62)el('rect',{x:xx,y:yy,width:5*scale,height:2.5*scale,fill:windows,opacity:.18+rnd()*.45},g)}
+    x+=w+8*scale;
+  }
+}
+city('farCityA',584,34,'#142630','#5ea3ad',1.1);$('farCityB').innerHTML=$('farCityA').innerHTML;
+city('midCityA',638,26,'#101b23','#e17a53',1.35);$('midCityB').innerHTML=$('midCityA').innerHTML;
+for(const id of ['rearSpokes','frontSpokes']){
+  const g=$(id);for(let i=0;i<20;i++){const a=i*Math.PI/10,x=Math.cos(a)*136,y=Math.sin(a)*136;el('path',{d:`M${Math.cos(a+.16)*24} ${Math.sin(a+.16)*24}L${x} ${y}`,stroke:i%2?'#60747c':'#a1b1b2','stroke-width':i%2?1.6:2.2},g)}
+}
+for(let x=-400;x<2600;x+=320){
+  el('path',{d:`M${x} 782L${x+128} 779L${x+178} 795L${x+45} 799Z`,fill:'#7c9194',opacity:.22},$('roadFlow'));
+  el('path',{d:`M${x+180} 850L${x+290} 846`,stroke:'#ff7044','stroke-width':5,opacity:.38},$('roadFlow'));
+}
+const lines=[];for(let i=0;i<18;i++){const n=el('path',{stroke:i%5===0?'#d8f6f2':'#6595a0','stroke-width':i%4===0?3:1.5,opacity:.25+rnd()*.45},$('speedLines'));lines.push({n,y:120+rnd()*600,off:rnd()*1900,len:55+rnd()*145,rate:.55+rnd()*.55})}
+const sparks=[];for(let i=0;i<18;i++){const n=el('path',{stroke:i%3?'#ff713d':'#ffe3a0','stroke-width':i%3?2:3,opacity:0},$('sparks'));sparks.push({n,life:0,x:0,y:0,vx:0,vy:0,max:1})}
+
+const ids={};['bodyAssembly','rearSpin','frontSpin','rearCogSpin','chain','chainringSpin','nearCrankSpin','farCrankSpin','nearPedal','farPedal','nearUpper','nearLower','nearKnee','nearFoot','farUpper','farLower','farKnee','farFoot','nearLegCable','nearLegCableHi','farLegCable','nearWingUpper','nearWingLower','nearWingElbow','farWingUpper','farWingLower','farWingElbow','nearWingCable','pouchSpin','pouchGlow','chestSpin','chestGlow','eyeGlow','boostFlame','neckCable','neckCableHi','featherA','featherB','featherC','featherD','tailA','tailB','tailC','roadFlow','farCityA','farCityB','midCityA','midCityB','speedLines'].forEach(id=>ids[id]=$(id));
+const tr=(n,x,y,a=0)=>n.setAttribute('transform',`translate(${x.toFixed(2)} ${y.toFixed(2)}) rotate(${a.toFixed(2)})`);
+function ik(h,a,l1,l2,bend){
+  const dx=a.x-h.x,dy=a.y-h.y,d=Math.max(Math.abs(l1-l2)+.01,Math.min(l1+l2-.01,Math.hypot(dx,dy))),ux=dx/d,uy=dy/d;
+  const q=(l1*l1-l2*l2+d*d)/(2*d),s=Math.sqrt(Math.max(0,l1*l1-q*q));
+  return{x:h.x+ux*q-uy*s*bend,y:h.y+uy*q+ux*s*bend};
+}
+function leg(prefix,hip,pedal){
+  const ankle={x:pedal.x-20,y:pedal.y-34},k=ik(hip,ankle,L1,L2,-1);
+  const a1=Math.atan2(k.y-hip.y,k.x-hip.x)*rad,a2=Math.atan2(ankle.y-k.y,ankle.x-k.x)*rad;
+  tr(ids[prefix+'Upper'],hip.x,hip.y,a1);tr(ids[prefix+'Lower'],k.x,k.y,a2);tr(ids[prefix+'Knee'],k.x,k.y);tr(ids[prefix+'Foot'],pedal.x,pedal.y);
+  const d=`M${hip.x} ${hip.y}Q${k.x-35} ${k.y-45} ${k.x} ${k.y}T${ankle.x} ${ankle.y}`;
+  if(prefix==='near'){ids.nearLegCable.setAttribute('d',d);ids.nearLegCableHi.setAttribute('d',d)}else ids.farLegCable.setAttribute('d',d);
+}
+function wing(prefix,shoulder,grip){
+  const k=ik(shoulder,grip,125,135,1),a1=Math.atan2(k.y-shoulder.y,k.x-shoulder.x)*rad,a2=Math.atan2(grip.y-k.y,grip.x-k.x)*rad;
+  tr(ids[prefix+'WingUpper'],shoulder.x,shoulder.y,a1);tr(ids[prefix+'WingLower'],k.x,k.y,a2);tr(ids[prefix+'WingElbow'],k.x,k.y);
+  if(prefix==='near')ids.nearWingCable.setAttribute('d',`M${shoulder.x} ${shoulder.y-18}Q${k.x-20} ${k.y-48} ${k.x} ${k.y}T${grip.x-5} ${grip.y-8}`);
+}
+const stage=$('stage'),button=$('boost');let phase=.65,distance=0,boostStart=-1e9,last=performance.now(),sparkCarry=0;
+function boost(){const now=performance.now();if(now-boostStart>=2000)boostStart=now}
+button.addEventListener('click',boost);addEventListener('keydown',e=>{if(e.code==='Space'){e.preventDefault();if(!e.repeat)boost()}});
+const smooth=(a,b,x)=>{const u=Math.max(0,Math.min(1,(x-a)/(b-a)));return u*u*(3-2*u)};
+function spawnSpark(b){
+  const s=sparks.find(v=>v.life<=0);if(!s)return;const front=rnd()>.76;s.x=(front?1150:450)+rnd()*22;s.y=843+rnd()*7;s.vx=-170-rnd()*(270+b*280);s.vy=-45-rnd()*(120+b*80);s.life=s.max=.25+rnd()*.38;
+}
+function frame(now){
+  const dt=Math.min(.033,Math.max(0,(now-last)/1000));last=now;
+  const e=(now-boostStart)/2000,b=e>=0&&e<=1?smooth(0,.16,e)*(1-smooth(.7,1,e)):0;
+  phase+=dt*4.35*(1+.5*b);distance+=dt*620*(1+1.35*b);
+  const deg=phase*rad,wheel=distance/164*rad,bob=Math.sin(phase*2)*3.1+Math.sin(now*.0021)*1.1;
+  ids.bodyAssembly.setAttribute('transform',`translate(0 ${bob.toFixed(2)})`);
+  ids.rearSpin.setAttribute('transform',`rotate(${wheel.toFixed(2)})`);ids.frontSpin.setAttribute('transform',`rotate(${wheel.toFixed(2)})`);ids.rearCogSpin.setAttribute('transform',`rotate(${wheel.toFixed(2)})`);
+  ids.chainringSpin.setAttribute('transform',`rotate(${deg.toFixed(2)})`);ids.nearCrankSpin.setAttribute('transform',`rotate(${deg.toFixed(2)})`);ids.farCrankSpin.setAttribute('transform',`rotate(${(deg+180).toFixed(2)})`);
+  ids.chain.style.strokeDashoffset=(-distance*1.04).toFixed(2);
+  const pedal={x:BB.x+Math.cos(phase)*CR,y:BB.y+Math.sin(phase)*CR},opposite={x:BB.x-Math.cos(phase)*CR,y:BB.y-Math.sin(phase)*CR};
+  tr(ids.nearPedal,pedal.x,pedal.y);tr(ids.farPedal,opposite.x,opposite.y);
+  leg('far',{x:682,y:450+bob},opposite);leg('near',{x:748,y:465+bob},pedal);
+  wing('far',{x:900,y:351+bob},{x:1030,y:405});wing('near',{x:930,y:373+bob},{x:1102,y:427});
+  const inertia=Math.sin(phase*2-.55)*1.4-b*5.5;
+  ids.featherA.setAttribute('transform',`rotate(${inertia*.35} 838 345)`);ids.featherB.setAttribute('transform',`rotate(${inertia*.6} 807 380)`);ids.featherC.setAttribute('transform',`rotate(${inertia*.8} 765 414)`);ids.featherD.setAttribute('transform',`rotate(${inertia} 722 444)`);
+  ids.tailA.setAttribute('transform',`rotate(${inertia*.65} 620 390)`);ids.tailB.setAttribute('transform',`rotate(${inertia*.9} 615 413)`);ids.tailC.setAttribute('transform',`rotate(${inertia*1.15} 625 430)`);
+  const cableWave=Math.sin(phase*2-.8)*5+b*7,neck=`M933 371C${927-cableWave} 318 ${963+cableWave} 260 994 232`;
+  ids.neckCable.setAttribute('d',neck);ids.neckCableHi.setAttribute('d',neck);
+  ids.pouchSpin.setAttribute('transform',`rotate(${(now*.025).toFixed(2)})`);ids.chestSpin.setAttribute('transform',`rotate(${(-now*.04).toFixed(2)})`);
+  ids.pouchGlow.setAttribute('opacity',(.16+b*.55).toFixed(2));ids.pouchGlow.setAttribute('r',(57+b*15).toFixed(2));ids.chestGlow.setAttribute('r',(16+b*7).toFixed(2));ids.eyeGlow.setAttribute('r',(7+b*2).toFixed(2));
+  ids.boostFlame.setAttribute('opacity',b.toFixed(2));ids.boostFlame.setAttribute('transform',`translate(525 424) scale(${(.25+b*.95).toFixed(3)} ${(.65+b*.35).toFixed(3)})`);
+  const f=-(distance*.035%1600),m=-(distance*.085%1600);ids.farCityA.setAttribute('transform',`translate(${f} 0)`);ids.farCityB.setAttribute('transform',`translate(${f+1600} 0)`);ids.midCityA.setAttribute('transform',`translate(${m} 0)`);ids.midCityB.setAttribute('transform',`translate(${m+1600} 0)`);
+  ids.roadFlow.setAttribute('transform',`translate(${-(distance%320)} 0)`);ids.speedLines.setAttribute('opacity',(.13+b*.7).toFixed(2));
+  for(const l of lines){const x=1690-((distance*l.rate+l.off)%2200),len=l.len*(1+b*1.8);l.n.setAttribute('d',`M${x} ${l.y}h${len}`)}
+  sparkCarry+=dt*(5+b*27);while(sparkCarry>1){spawnSpark(b);sparkCarry--}
+  for(const s of sparks){if(s.life>0){s.life-=dt;s.x+=s.vx*dt;s.y+=s.vy*dt;s.vy+=330*dt;const o=Math.max(0,s.life/s.max);s.n.setAttribute('d',`M${s.x} ${s.y}l${-s.vx*.025} ${-s.vy*.018}`);s.n.setAttribute('opacity',(o*.8).toFixed(2))}else s.n.setAttribute('opacity',0)}
+  stage.style.setProperty('--boost',b.toFixed(3));button.classList.toggle('active',b>.03);button.setAttribute('aria-pressed',b>.03?'true':'false');
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

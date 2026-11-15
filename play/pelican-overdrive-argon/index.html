@@ -1,0 +1,1407 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PELICAN // OVERDRIVE</title>
+<style>
+  *, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  html, body {
+    width: 100%;
+    height: 100%;
+    background-color: #05080e;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: "SF Mono", "JetBrains Mono", "Consolas", "Courier New", monospace;
+  }
+
+  #stage-wrapper {
+    position: relative;
+    width: 100vw;
+    height: 56.25vw; /* 16:9 ratio */
+    max-height: 100vh;
+    max-width: 177.78vh;
+    background: #070b12;
+    overflow: hidden;
+    box-shadow: 0 0 80px rgba(0, 0, 0, 0.95), 0 0 2px rgba(0, 240, 255, 0.25);
+  }
+
+  svg#scene {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  /* Minimalist Mecha HUD Overlay */
+  .hud-layer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 2.2% 2.8%;
+  }
+
+  .hud-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #c5d1de;
+    font-size: clamp(11px, 1.05vw, 15px);
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    background: rgba(11, 16, 24, 0.72);
+    border-left: 3px solid #ff4d29;
+    border-top: 1px solid rgba(197, 209, 222, 0.16);
+    border-right: 1px solid rgba(197, 209, 222, 0.16);
+    border-bottom: 1px solid rgba(197, 209, 222, 0.16);
+    padding: 7px 14px;
+    backdrop-filter: blur(4px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  }
+
+  .hud-dot {
+    width: 7px;
+    height: 7px;
+    background: #00f0ff;
+    box-shadow: 0 0 10px #00f0ff;
+    transform: rotate(45deg);
+    transition: background 0.2s, box-shadow 0.2s;
+  }
+
+  .hud-title.boosting .hud-dot {
+    background: #ff4d29;
+    box-shadow: 0 0 14px #ff4d29;
+  }
+
+  .boost-btn {
+    pointer-events: auto;
+    cursor: pointer;
+    background: linear-gradient(135deg, rgba(20, 28, 40, 0.88) 0%, rgba(11, 16, 24, 0.94) 100%);
+    color: #e8eef5;
+    border: 1px solid rgba(0, 240, 255, 0.45);
+    border-right: 3px solid #00f0ff;
+    padding: 8px 18px;
+    font-family: inherit;
+    font-size: clamp(11px, 1vw, 14px);
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.6), inset 0 0 12px rgba(0, 240, 255, 0.08);
+    clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+  }
+
+  .boost-btn:hover {
+    border-color: #00f0ff;
+    box-shadow: 0 0 20px rgba(0, 240, 255, 0.35), inset 0 0 15px rgba(0, 240, 255, 0.2);
+    transform: translateY(-1px);
+  }
+
+  .boost-btn:active,
+  .boost-btn.active {
+    background: linear-gradient(135deg, rgba(255, 77, 41, 0.32) 0%, rgba(20, 14, 18, 0.95) 100%);
+    border-color: #ff4d29;
+    border-right-color: #ff4d29;
+    color: #ffffff;
+    box-shadow: 0 0 28px rgba(255, 77, 41, 0.55), inset 0 0 18px rgba(255, 77, 41, 0.35);
+    transform: translateY(1px);
+  }
+
+  .boost-key {
+    font-size: 0.78em;
+    color: #00f0ff;
+    opacity: 0.85;
+    padding: 1px 5px;
+    border: 1px solid rgba(0, 240, 255, 0.35);
+    background: rgba(0, 240, 255, 0.08);
+  }
+
+  .boost-btn.active .boost-key {
+    color: #ff9e80;
+    border-color: rgba(255, 77, 41, 0.6);
+    background: rgba(255, 77, 41, 0.2);
+  }
+</style>
+</head>
+<body>
+
+<div id="stage-wrapper">
+  <!-- Minimalist HUD -->
+  <div class="hud-layer">
+    <div class="hud-title" id="hudStatus">
+      <span class="hud-dot"></span>
+      <span>PELICAN // OVERDRIVE</span>
+    </div>
+    <button class="boost-btn" id="boostBtn" type="button" aria-label="Trigger Overdrive Boost">
+      <span>BOOST</span>
+      <span class="boost-key">SPACE</span>
+    </button>
+  </div>
+
+  <svg id="scene" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <!-- Sky & Atmosphere Gradients -->
+      <linearGradient id="skyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#050811"/>
+        <stop offset="48%" stop-color="#0a1222"/>
+        <stop offset="82%" stop-color="#111d31"/>
+        <stop offset="100%" stop-color="#080d17"/>
+      </linearGradient>
+
+      <radialGradient id="cityGlow" cx="55%" cy="72%" r="55%">
+        <stop offset="0%" stop-color="#00f0ff" stop-opacity="0.13"/>
+        <stop offset="45%" stop-color="#0066ff" stop-opacity="0.05"/>
+        <stop offset="100%" stop-color="#050811" stop-opacity="0"/>
+      </radialGradient>
+
+      <linearGradient id="roadDeckGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#121a26"/>
+        <stop offset="15%" stop-color="#0c121b"/>
+        <stop offset="60%" stop-color="#080c13"/>
+        <stop offset="100%" stop-color="#04060a"/>
+      </linearGradient>
+
+      <!-- Ceramic White Mecha Armor Gradients -->
+      <linearGradient id="ceramicWhite" x1="15%" y1="0%" x2="85%" y2="100%">
+        <stop offset="0%" stop-color="#f7faff"/>
+        <stop offset="35%" stop-color="#e5edf6"/>
+        <stop offset="75%" stop-color="#c2cfde"/>
+        <stop offset="100%" stop-color="#96a7bc"/>
+      </linearGradient>
+
+      <linearGradient id="ceramicBevel" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#ffffff"/>
+        <stop offset="22%" stop-color="#dce6f2"/>
+        <stop offset="85%" stop-color="#b2c2d4"/>
+        <stop offset="100%" stop-color="#7e90a6"/>
+      </linearGradient>
+
+      <linearGradient id="ceramicShadowed" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#98a8bc"/>
+        <stop offset="55%" stop-color="#6e7f94"/>
+        <stop offset="100%" stop-color="#485669"/>
+      </linearGradient>
+
+      <!-- Gunmetal & Frame Gradients -->
+      <linearGradient id="gunmetalDark" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#364354"/>
+        <stop offset="45%" stop-color="#222b37"/>
+        <stop offset="100%" stop-color="#12171f"/>
+      </linearGradient>
+
+      <linearGradient id="gunmetalSpec" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#526278"/>
+        <stop offset="30%" stop-color="#293342"/>
+        <stop offset="70%" stop-color="#181f29"/>
+        <stop offset="100%" stop-color="#2f3b4c"/>
+      </linearGradient>
+
+      <linearGradient id="farLegDark" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#4c5b6e"/>
+        <stop offset="50%" stop-color="#2c3645"/>
+        <stop offset="100%" stop-color="#171d26"/>
+      </linearGradient>
+
+      <linearGradient id="carbonFrame" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#2e3948"/>
+        <stop offset="40%" stop-color="#1b222c"/>
+        <stop offset="80%" stop-color="#10151c"/>
+        <stop offset="100%" stop-color="#26313f"/>
+      </linearGradient>
+
+      <!-- Hazard Orange & Energy Cyan -->
+      <linearGradient id="hazardOrange" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#ff7448"/>
+        <stop offset="50%" stop-color="#ff4d29"/>
+        <stop offset="100%" stop-color="#b82508"/>
+      </linearGradient>
+
+      <linearGradient id="cyanEnergy" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="#ffffff"/>
+        <stop offset="30%" stop-color="#70f8ff"/>
+        <stop offset="75%" stop-color="#00d8ff"/>
+        <stop offset="100%" stop-color="#0066ff"/>
+      </linearGradient>
+
+      <!-- Semi-Transparent Gular Pouch (Lower Beak) Gradients -->
+      <linearGradient id="pouchShellGrad" x1="20%" y1="0%" x2="80%" y2="100%">
+        <stop offset="0%" stop-color="#1d354d" stop-opacity="0.72"/>
+        <stop offset="45%" stop-color="#0b2238" stop-opacity="0.62"/>
+        <stop offset="85%" stop-color="#00a2cc" stop-opacity="0.38"/>
+        <stop offset="100%" stop-color="#4ceeff" stop-opacity="0.65"/>
+      </linearGradient>
+
+      <radialGradient id="pouchCoreGlow" cx="48%" cy="44%" r="52%">
+        <stop offset="0%" stop-color="#ffffff" stop-opacity="0.98"/>
+        <stop offset="25%" stop-color="#00f0ff" stop-opacity="0.88"/>
+        <stop offset="65%" stop-color="#0077ff" stop-opacity="0.35"/>
+        <stop offset="100%" stop-color="#002244" stop-opacity="0"/>
+      </radialGradient>
+
+      <!-- Thruster Plume Gradients -->
+      <linearGradient id="thrusterCyan" x1="100%" y1="50%" x2="0%" y2="50%">
+        <stop offset="0%" stop-color="#ffffff" stop-opacity="1"/>
+        <stop offset="22%" stop-color="#78f8ff" stop-opacity="0.95"/>
+        <stop offset="55%" stop-color="#00d0ff" stop-opacity="0.7"/>
+        <stop offset="85%" stop-color="#ff4d29" stop-opacity="0.35"/>
+        <stop offset="100%" stop-color="#ff4d29" stop-opacity="0"/>
+      </linearGradient>
+
+      <linearGradient id="thrusterOrange" x1="100%" y1="50%" x2="0%" y2="50%">
+        <stop offset="0%" stop-color="#ffffff" stop-opacity="1"/>
+        <stop offset="25%" stop-color="#ffae42" stop-opacity="0.92"/>
+        <stop offset="65%" stop-color="#ff4d29" stop-opacity="0.65"/>
+        <stop offset="100%" stop-color="#990000" stop-opacity="0"/>
+      </linearGradient>
+
+      <!-- Ground Shadows & Reflections -->
+      <radialGradient id="wheelContactShadow" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#000000" stop-opacity="0.92"/>
+        <stop offset="55%" stop-color="#020408" stop-opacity="0.65"/>
+        <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+      </radialGradient>
+
+      <radialGradient id="cyanGroundBounce" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#00f0ff" stop-opacity="0.36"/>
+        <stop offset="50%" stop-color="#0099ff" stop-opacity="0.12"/>
+        <stop offset="100%" stop-color="#00f0ff" stop-opacity="0"/>
+      </radialGradient>
+
+      <radialGradient id="orangeGroundBounce" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#ff4d29" stop-opacity="0.45"/>
+        <stop offset="50%" stop-color="#ff4d29" stop-opacity="0.14"/>
+        <stop offset="100%" stop-color="#ff4d29" stop-opacity="0"/>
+      </radialGradient>
+
+      <!-- Glow Filters -->
+      <filter id="glowCyan" x="-40%" y="-40%" width="180%" height="180%">
+        <feGaussianBlur stdDeviation="7" result="blur1"/>
+        <feGaussianBlur stdDeviation="16" result="blur2"/>
+        <feMerge>
+          <feMergeNode in="blur2"/>
+          <feMergeNode in="blur1"/>
+          <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+      </filter>
+
+      <filter id="glowSoft" x="-25%" y="-25%" width="150%" height="150%">
+        <feGaussianBlur stdDeviation="4" result="blur"/>
+        <feMerge>
+          <feMergeNode in="blur"/>
+          <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+      </filter>
+
+      <!-- Reusable High-Tech Aero Wheel Assembly (Radius = 185) -->
+      <g id="aeroWheel">
+        <!-- Outer Rubber Tire with bevel -->
+        <circle cx="0" cy="0" r="185" fill="none" stroke="#10151d" stroke-width="26"/>
+        <circle cx="0" cy="0" r="185" fill="none" stroke="#1f2836" stroke-width="20"/>
+        <!-- Tire Tread blocks (rotating with wheel) -->
+        <circle cx="0" cy="0" r="195" fill="none" stroke="#090c10" stroke-width="5" stroke-dasharray="14 10"/>
+        <!-- Deep Profile Carbon Aero Rim -->
+        <circle cx="0" cy="0" r="162" fill="none" stroke="url(#gunmetalDark)" stroke-width="24"/>
+        <circle cx="0" cy="0" r="173" fill="none" stroke="#5b6d85" stroke-width="1.5" opacity="0.7"/>
+        <circle cx="0" cy="0" r="150" fill="none" stroke="#0d1218" stroke-width="3"/>
+        <!-- Rim Hazard & Telemetry Decals (rotate clearly!) -->
+        <path d="M 155 -28 A 158 158 0 0 1 155 28" fill="none" stroke="#ff4d29" stroke-width="8"/>
+        <path d="M -155 -28 A 158 158 0 0 0 -155 28" fill="none" stroke="#ff4d29" stroke-width="8"/>
+        <path d="M -22 -156 A 158 158 0 0 1 22 -156" fill="none" stroke="#00f0ff" stroke-width="5" opacity="0.85"/>
+        <path d="M -22 156 A 158 158 0 0 0 22 156" fill="none" stroke="#00f0ff" stroke-width="5" opacity="0.85"/>
+
+        <!-- 6-Pair Bladed Carbon Tri-Spokes + Tension Spokes -->
+        <g stroke-linecap="round">
+          <!-- 3 Heavy Aero Composite Blades -->
+          <path d="M -12 -25 L -6 -150 L 8 -150 L 12 -25 Z" fill="url(#gunmetalSpec)"/>
+          <path d="M 27 2 L 133 70 L 125 82 L 16 18 Z" fill="url(#gunmetalSpec)"/>
+          <path d="M -16 18 L -125 82 L -133 70 L -27 2 Z" fill="url(#gunmetalSpec)"/>
+          <!-- Blade Accent Lines -->
+          <line x1="0" y1="-35" x2="0" y2="-146" stroke="#8ea2ba" stroke-width="1.5"/>
+          <line x1="30" y1="18" x2="125" y2="73" stroke="#8ea2ba" stroke-width="1.5"/>
+          <line x1="-30" y1="18" x2="-125" y2="73" stroke="#8ea2ba" stroke-width="1.5"/>
+
+          <!-- Secondary High-Tension Steel Spokes -->
+          <line x1="0" y1="0" x2="106" y2="-106" stroke="#6d7f96" stroke-width="2.2"/>
+          <line x1="0" y1="0" x2="-106" y2="-106" stroke="#6d7f96" stroke-width="2.2"/>
+          <line x1="0" y1="0" x2="0" y2="150" stroke="#6d7f96" stroke-width="2.2"/>
+          <line x1="0" y1="0" x2="144" y2="-40" stroke="#495668" stroke-width="1.6"/>
+          <line x1="0" y1="0" x2="-144" y2="-40" stroke="#495668" stroke-width="1.6"/>
+          <line x1="0" y1="0" x2="62" y2="136" stroke="#495668" stroke-width="1.6"/>
+          <line x1="0" y1="0" x2="-62" y2="136" stroke="#495668" stroke-width="1.6"/>
+        </g>
+
+        <!-- Ventilated Disc Brake Rotor -->
+        <circle cx="0" cy="0" r="54" fill="none" stroke="#9eb0c7" stroke-width="10" stroke-dasharray="18 6"/>
+        <circle cx="0" cy="0" r="46" fill="none" stroke="#4e5d70" stroke-width="4"/>
+        <circle cx="0" cy="0" r="32" fill="#18202b" stroke="#7d8fa6" stroke-width="2"/>
+        <!-- Center Hub & Cyan Bearing Ring -->
+        <circle cx="0" cy="0" r="20" fill="url(#gunmetalDark)" stroke="#c5d1de" stroke-width="2"/>
+        <circle cx="0" cy="0" r="10" fill="#09131c" stroke="#00f0ff" stroke-width="2.5"/>
+      </g>
+    </defs>
+
+    <!-- ========================================================================= -->
+    <!-- 1. BACKGROUND: CYBERPUNK ELEVATED HIGHWAY & PARALLAX METROPOLIS           -->
+    <!-- ========================================================================= -->
+    <rect width="1600" height="900" fill="url(#skyGrad)"/>
+    <ellipse cx="880" cy="580" rx="850" ry="380" fill="url(#cityGlow)"/>
+
+    <!-- Atmospheric Horizon Grid & Distant Mega-Structures -->
+    <g opacity="0.28">
+      <line x1="0" y1="620" x2="1600" y2="620" stroke="#00f0ff" stroke-width="1" stroke-dasharray="12 24"/>
+      <line x1="0" y1="520" x2="1600" y2="520" stroke="#3b526b" stroke-width="0.8" stroke-dasharray="4 16"/>
+    </g>
+
+    <!-- Parallax Layer 1: Far Skyline Silhouettes (Slowest) -->
+    <g id="bgCityFar" fill="#09111f" stroke="#162640" stroke-width="1">
+      <g id="cityFarStrip1">
+        <path d="M 0 700 L 0 420 L 65 420 L 85 380 L 140 380 L 140 510 L 190 510 L 190 310 L 260 280 L 290 280 L 290 480 L 350 480 L 350 360 L 440 360 L 440 530 L 510 530 L 510 240 L 560 210 L 610 240 L 610 490 L 680 490 L 680 390 L 770 390 L 770 520 L 840 520 L 840 290 L 930 290 L 950 330 L 950 500 L 1030 500 L 1030 350 L 1120 350 L 1120 470 L 1190 470 L 1190 260 L 1270 260 L 1290 300 L 1290 510 L 1370 510 L 1370 400 L 1460 400 L 1460 490 L 1530 490 L 1530 370 L 1600 370 L 1600 700 Z"/>
+        <!-- Distant Building Beacons & Vertical Window Strips -->
+        <g fill="#00f0ff" opacity="0.32" stroke="none">
+          <rect x="210" y="320" width="4" height="140"/>
+          <rect x="224" y="320" width="4" height="140"/>
+          <rect x="532" y="255" width="6" height="190"/>
+          <rect x="865" y="320" width="4" height="150"/>
+          <rect x="880" y="320" width="4" height="150"/>
+          <rect x="1220" y="290" width="5" height="160"/>
+        </g>
+        <g fill="#ff4d29" opacity="0.55" stroke="none">
+          <circle cx="260" cy="276" r="3"/>
+          <circle cx="560" cy="206" r="3.5"/>
+          <circle cx="885" cy="286" r="3"/>
+          <circle cx="1230" cy="256" r="3"/>
+        </g>
+      </g>
+      <use href="#cityFarStrip1" x="1600" y="0"/>
+    </g>
+
+    <!-- Parallax Layer 2: Midground Industrial Towers & Highway Pylons (Medium speed) -->
+    <g id="bgPylonsMid">
+      <g id="pylonStrip1">
+        <!-- Truss Arch Support 1 -->
+        <path d="M 120 710 L 165 450 L 230 450 L 275 710 Z" fill="#0d1624" stroke="#1e304a" stroke-width="2"/>
+        <line x1="145" y1="570" x2="250" y2="570" stroke="#1e304a" stroke-width="3"/>
+        <rect x="192" y="465" width="10" height="45" fill="#00f0ff" opacity="0.22"/>
+        <!-- Overhead Highway Sign Gantry -->
+        <path d="M 620 710 L 650 380 L 705 380 L 735 710 Z" fill="#0c1522" stroke="#223654" stroke-width="2"/>
+        <rect x="642" y="410" width="72" height="18" fill="#132238" stroke="#00f0ff" stroke-width="1" stroke-opacity="0.4"/>
+        <rect x="652" y="416" width="32" height="6" fill="#ff4d29" opacity="0.7"/>
+        <!-- Truss Arch Support 2 -->
+        <path d="M 1140 710 L 1185 430 L 1250 430 L 1295 710 Z" fill="#0d1624" stroke="#1e304a" stroke-width="2"/>
+        <rect x="1212" y="450" width="10" height="60" fill="#00f0ff" opacity="0.22"/>
+      </g>
+      <use href="#pylonStrip1" x="1600" y="0"/>
+    </g>
+
+    <!-- Parallax Layer 3: High-Speed Guardrails & Track Stanchions (Fast) -->
+    <g id="bgRailNear">
+      <!-- Continuous Upper & Lower Guardrail Beams -->
+      <rect x="0" y="656" width="1600" height="10" fill="#182334"/>
+      <rect x="0" y="684" width="1600" height="14" fill="#121b28"/>
+      <line x1="0" y1="658" x2="1600" y2="658" stroke="#394d68" stroke-width="1.5"/>
+      <g id="railPosts">
+        <!-- Repeated stanchions every 200px -->
+        <path d="M 80 715 L 95 645 L 115 645 L 108 715 Z M 280 715 L 295 645 L 315 645 L 308 715 Z M 480 715 L 495 645 L 515 645 L 508 715 Z M 680 715 L 695 645 L 715 645 L 708 715 Z M 880 715 L 895 645 L 915 645 L 908 715 Z M 1080 715 L 1095 645 L 1115 645 L 1108 715 Z M 1280 715 L 1295 645 L 1315 645 L 1308 715 Z M 1480 715 L 1495 645 L 1515 645 L 1508 715 Z" fill="#202c3d" stroke="#0d131c" stroke-width="1.5"/>
+        <!-- Reflective hazard markers on posts -->
+        <path d="M 96 655 L 108 655 L 106 668 L 94 668 Z M 496 655 L 508 655 L 506 668 L 494 668 Z M 896 655 L 908 655 L 906 668 L 894 668 Z M 1296 655 L 1308 655 L 1306 668 L 1294 668 Z" fill="#ff4d29" opacity="0.75"/>
+        <path d="M 296 655 L 308 655 L 306 668 L 294 668 Z M 696 655 L 708 655 L 706 668 L 694 668 Z M 1096 655 L 1108 655 L 1106 668 L 1094 668 Z M 1496 655 L 1508 655 L 1506 668 L 1494 668 Z" fill="#00f0ff" opacity="0.75"/>
+      </g>
+    </g>
+
+    <!-- ========================================================================= -->
+    <!-- 2. ELEVATED ROADWAY DECK, REFLECTIONS & CONTACT SHADOWS                   -->
+    <!-- ========================================================================= -->
+    <g id="roadLayer">
+      <!-- Road Deck Surface -->
+      <rect x="0" y="708" width="1600" height="192" fill="url(#roadDeckGrad)"/>
+      <!-- Metal Expansion Curb Line -->
+      <line x1="0" y1="708" x2="1600" y2="708" stroke="#3c516e" stroke-width="2"/>
+      <line x1="0" y1="712" x2="1600" y2="712" stroke="#00f0ff" stroke-width="1" opacity="0.35"/>
+
+      <!-- Scrolling Road Markings & Wet Asphalt Light Streaks -->
+      <line id="roadStripeMain" x1="0" y1="752" x2="1600" y2="752" stroke="#00f0ff" stroke-width="3" stroke-dasharray="140 180" opacity="0.45"/>
+      <line id="roadStripeHazard" x1="0" y1="818" x2="1600" y2="818" stroke="#ff4d29" stroke-width="4" stroke-dasharray="90 230" opacity="0.38"/>
+      <line id="roadSlickStreak" x1="0" y1="776" x2="1600" y2="776" stroke="#78b8ff" stroke-width="1.5" stroke-dasharray="220 340" opacity="0.22"/>
+
+      <!-- Ambient Ground Bounce Glow from Reactor, Gular Pouch & Thrusters -->
+      <ellipse id="groundGlowReactor" cx="840" cy="755" rx="340" ry="26" fill="url(#cyanGroundBounce)"/>
+      <ellipse id="groundGlowPouch" cx="1260" cy="755" rx="210" ry="20" fill="url(#cyanGroundBounce)"/>
+      <ellipse id="groundGlowThruster" cx="320" cy="755" rx="260" ry="28" fill="url(#orangeGroundBounce)" opacity="0.45"/>
+
+      <!-- Deep Contact Shadows directly beneath Rear Wheel (470,750), BB, and Front Wheel (1150,750) -->
+      <ellipse cx="810" cy="754" rx="460" ry="18" fill="url(#wheelContactShadow)" opacity="0.65"/>
+      <ellipse cx="470" cy="751" rx="145" ry="14" fill="url(#wheelContactShadow)"/>
+      <ellipse cx="1150" cy="751" rx="145" ry="14" fill="url(#wheelContactShadow)"/>
+    </g>
+
+    <!-- Background Speed Lines (Subtle in cruise, intense in BOOST, never blocking subject) -->
+    <g id="speedLinesBg" stroke-linecap="round">
+      <line class="spd-line" x1="150" y1="140" x2="480" y2="140" stroke="#00f0ff" stroke-width="2" opacity="0.25"/>
+      <line class="spd-line" x1="920" y1="95" x2="1380" y2="95" stroke="#e8eef5" stroke-width="1.5" opacity="0.2"/>
+      <line class="spd-line" x1="60" y1="260" x2="360" y2="260" stroke="#00f0ff" stroke-width="1.5" opacity="0.22"/>
+      <line class="spd-line" x1="1180" y1="215" x2="1550" y2="215" stroke="#00f0ff" stroke-width="2.5" opacity="0.25"/>
+      <line class="spd-line" x1="40" y1="480" x2="310" y2="480" stroke="#ff4d29" stroke-width="2" opacity="0.25"/>
+      <line class="spd-line" x1="1280" y1="685" x2="1580" y2="685" stroke="#00f0ff" stroke-width="2" opacity="0.3"/>
+      <line class="spd-line" x1="80" y1="845" x2="540" y2="845" stroke="#70f8ff" stroke-width="2.5" opacity="0.28"/>
+      <line class="spd-line" x1="950" y1="865" x2="1490" y2="865" stroke="#ff4d29" stroke-width="1.8" opacity="0.25"/>
+    </g>
+
+    <!-- ========================================================================= -->
+    <!-- 3. MASTER RIG: MECHA PELICAN & FUTURISTIC RACING BICYCLE                  -->
+    <!-- ========================================================================= -->
+    <g id="masterRig">
+
+      <!-- ----------------------------------------------------------------------- -->
+      <!-- LAYER A: FAR-SIDE (LEFT) WING ARM, LEFT LEG & LEFT CRANK (Darkened)     -->
+      <!-- ----------------------------------------------------------------------- -->
+      <!-- Far Left Wing Arm reaching to far drop handlebar -->
+      <g id="farWingGroup">
+        <!-- Upper & Forearm Mechanical Strut (Shadowed tone) -->
+        <path d="M 885 260 L 995 295 L 1148 362" fill="none" stroke="#1e2733" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M 885 260 L 995 295 L 1148 362" fill="none" stroke="#364559" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+        <!-- Far Wing Primary Feathers (Swept back behind torso) -->
+        <path d="M 975 292 L 770 250 L 795 278 L 985 310 Z" fill="#2c3847" stroke="#141a22" stroke-width="2"/>
+        <path d="M 995 304 L 810 282 L 832 308 L 1005 322 Z" fill="#232d3b" stroke="#141a22" stroke-width="2"/>
+        <!-- Far Wing Mechanical Claw gripping far drop bar at (1152, 366) -->
+        <circle cx="1152" cy="366" r="14" fill="#1e2733" stroke="#47586e" stroke-width="3"/>
+      </g>
+
+      <!-- Far Left Crank (180 deg offset from Right Crank, behind Bottom Bracket) -->
+      <g id="leftCrankGroup">
+        <line id="leftCrankArm" x1="755" y1="585" x2="755" y2="517" stroke="#1c2430" stroke-width="20" stroke-linecap="round"/>
+        <line id="leftCrankHighlight" x1="755" y1="585" x2="755" y2="517" stroke="#374557" stroke-width="8" stroke-linecap="round"/>
+      </g>
+
+      <!-- Far Left Leg (2-Bone IK driven, darkened for clear depth separation) -->
+      <g id="leftLegIK">
+        <!-- Left Thigh (Femur/Tibiotarsus) -->
+        <g id="leftThigh" transform="translate(675, 330)">
+          <!-- Main Structural Armor -->
+          <path d="M -22 -14 L 115 -26 L 178 -10 L 185 12 L 125 26 L -18 20 Z" fill="url(#farLegDark)" stroke="#12171f" stroke-width="2.5"/>
+          <!-- Inner Hydraulic Cylinder -->
+          <line x1="20" y1="16" x2="155" y2="14" stroke="#64778f" stroke-width="6" stroke-linecap="round"/>
+          <circle cx="0" cy="0" r="18" fill="#1b222c" stroke="#455468" stroke-width="3"/>
+        </g>
+
+        <!-- Left Lower Leg (Tarsometatarsus) -->
+        <g id="leftShin" transform="translate(810, 450)">
+          <path d="M -14 -12 L 130 -16 L 176 -5 L 175 10 L 115 16 L -12 14 Z" fill="#252f3d" stroke="#10151c" stroke-width="2.5"/>
+          <line x1="15" y1="-15" x2="140" y2="-10" stroke="#4c5d73" stroke-width="4"/>
+          <!-- Knee Joint Hub -->
+          <circle cx="0" cy="0" r="16" fill="#18202b" stroke="#53657d" stroke-width="3"/>
+          <circle cx="0" cy="0" r="5" fill="#00a2cc"/>
+        </g>
+
+        <!-- Left Mechanical Avian Foot & Far Pedal -->
+        <g id="leftFoot" transform="translate(755, 517)">
+          <!-- Far Pedal Platform -->
+          <rect x="-32" y="4" width="68" height="10" rx="3" fill="#141a22" stroke="#4c5d73" stroke-width="2"/>
+          <!-- Avian 3-Talon Mechanical Foot Clamped on Pedal -->
+          <path d="M -18 4 L 4 -12 L 34 0 L 46 8 L 18 8 Z" fill="#2d394a" stroke="#12171f" stroke-width="2"/>
+          <path d="M -16 2 L -36 8 L -22 -4 Z" fill="#232d3b" stroke="#12171f" stroke-width="1.5"/>
+          <circle cx="0" cy="0" r="11" fill="#18202b" stroke="#4c5d73" stroke-width="2.5"/>
+        </g>
+      </g>
+
+      <!-- ----------------------------------------------------------------------- -->
+      <!-- LAYER B: ROTATING BICYCLE WHEELS (REAR: 470,565 | FRONT: 1150,565)      -->
+      <!-- ----------------------------------------------------------------------- -->
+      <g id="rearWheelInstance" transform="translate(470, 565)">
+        <use href="#aeroWheel"/>
+      </g>
+
+      <g id="frontWheelInstance" transform="translate(1150, 565)">
+        <use href="#aeroWheel"/>
+      </g>
+
+      <!-- Dynamic Rear Tire Friction Sparks Container -->
+      <g id="sparkLayer"></g>
+
+      <!-- ----------------------------------------------------------------------- -->
+      <!-- LAYER C: FUTURISTIC DIAMOND AERO BICYCLE FRAME, FORK & COCKPIT          -->
+      <!-- ----------------------------------------------------------------------- -->
+      <g id="bikeFrameGroup">
+        <!-- Rear Disc Brake Caliper & Chainstay Thruster Mount -->
+        <path d="M 435 520 L 465 512 L 472 538 L 442 544 Z" fill="url(#hazardOrange)" stroke="#12171f" stroke-width="2"/>
+
+        <!-- Rear Wheel Partial Aero Fairing / Hugger -->
+        <path d="M 595 415 A 198 198 0 0 1 668 555 L 642 558 A 174 174 0 0 0 578 432 Z" fill="url(#gunmetalDark)" stroke="#49586b" stroke-width="1.5"/>
+
+        <!-- Rear Triangle: Seatstay (640,355 -> 470,565) & Chainstay (755,585 -> 470,565) -->
+        <path d="M 638 375 L 462 555 L 478 572 L 656 392 Z" fill="url(#carbonFrame)" stroke="#435266" stroke-width="2"/>
+        <path d="M 755 572 L 466 552 L 466 578 L 755 602 Z" fill="url(#gunmetalSpec)" stroke="#4f6078" stroke-width="2"/>
+        <!-- Chainstay Auxiliary Jet Nozzle (at rear dropout 430, 565) -->
+        <path d="M 465 548 L 418 542 L 412 584 L 465 578 Z" fill="url(#gunmetalDark)" stroke="#687b94" stroke-width="2"/>
+        <rect x="406" y="548" width="8" height="30" fill="#00f0ff" opacity="0.8"/>
+
+        <!-- Main Aero Diamond Frame: Down Tube (755,585 -> 1085,410), Top Tube (640,355 -> 1060,340), Seat Tube (755,585 -> 640,355) -->
+        <!-- Heavy Sculpted Carbon Down Tube with Ceramic White Cowling -->
+        <path d="M 745 598 L 1094 422 L 1072 384 L 732 560 Z" fill="url(#carbonFrame)" stroke="#3e4d61" stroke-width="2"/>
+        <path d="M 805 538 L 1068 402 L 1054 380 L 790 515 Z" fill="url(#ceramicWhite)" stroke="#1b222c" stroke-width="2"/>
+        <!-- Down Tube Cooling Louvers & Cyan Energy Bus -->
+        <line x1="825" y1="514" x2="1038" y2="404" stroke="#00f0ff" stroke-width="3.5" filter="url(#glowSoft)"/>
+        <path d="M 960 448 L 1015 420 L 1022 430 L 967 458 Z" fill="url(#hazardOrange)"/>
+
+        <!-- Seat Tube (Aero Foil Profile) -->
+        <path d="M 772 585 L 658 350 L 622 362 L 732 590 Z" fill="url(#carbonFrame)" stroke="#47576b" stroke-width="2"/>
+        <!-- Top Tube (Sloping Pursuit Geometry) -->
+        <path d="M 632 368 L 1068 352 L 1075 384 L 648 395 Z" fill="url(#ceramicBevel)" stroke="#1b222c" stroke-width="2.5"/>
+        <path d="M 720 365 L 985 355 L 975 372 L 730 380 Z" fill="#1b222c"/>
+        <line x1="740" y1="372" x2="960" y2="364" stroke="#00f0ff" stroke-width="2.5"/>
+
+        <!-- Head Tube & Integrated Aero Nose Cone (1060,340 -> 1085,410) -->
+        <path d="M 1044 330 L 1098 326 L 1122 414 L 1062 422 Z" fill="url(#ceramicWhite)" stroke="#1b222c" stroke-width="2.5"/>
+        <path d="M 1056 346 L 1092 344 L 1102 380 L 1066 382 Z" fill="url(#hazardOrange)"/>
+
+        <!-- Front Aero Fork with Micro-Suspension Stanchions (1085,410 -> 1150,565) -->
+        <g id="frontForkGroup">
+          <!-- Upper Fork Crown -->
+          <path d="M 1066 414 L 1112 406 L 1134 475 L 1092 485 Z" fill="url(#gunmetalSpec)" stroke="#151b24" stroke-width="2"/>
+          <!-- Golden/Cyan Inner Suspension Stanchion Tube -->
+          <line x1="1110" y1="472" x2="1132" y2="525" stroke="#00f0ff" stroke-width="6" stroke-linecap="round"/>
+          <line x1="1110" y1="472" x2="1132" y2="525" stroke="#c5d1de" stroke-width="14" stroke-opacity="0.35" stroke-linecap="round"/>
+          <!-- Lower Aero Fork Blade -->
+          <path d="M 1102 496 L 1138 486 L 1166 565 L 1136 575 Z" fill="url(#ceramicWhite)" stroke="#1b222c" stroke-width="2.5"/>
+          <path d="M 1116 512 L 1132 508 L 1152 558 L 1138 562 Z" fill="#1b222c"/>
+          <!-- Front Disc Brake Caliper -->
+          <path d="M 1108 532 L 1134 526 L 1140 552 L 1114 556 Z" fill="url(#hazardOrange)" stroke="#12171f" stroke-width="2"/>
+          <!-- Front Axle Nut -->
+          <circle cx="1150" cy="565" r="8" fill="#ff4d29" stroke="#ffffff" stroke-width="1.5"/>
+        </g>
+
+        <!-- Aero Bullhorn / Drop Handlebars & Stem -->
+        <path d="M 1072 332 L 1145 322 L 1192 348 L 1175 385 L 1135 382 L 1155 352 L 1075 356 Z" fill="url(#gunmetalSpec)" stroke="#c5d1de" stroke-width="2"/>
+        <!-- Glowing Cyan Bar-End Telemetry Plug -->
+        <circle cx="1165" cy="375" r="7" fill="#00f0ff" filter="url(#glowSoft)"/>
+
+        <!-- Mechanical Racing Saddle & Hydraulic Seatpost -->
+        <line x1="644" y1="360" x2="628" y2="320" stroke="#00f0ff" stroke-width="8" stroke-linecap="round"/>
+        <path d="M 565 316 L 675 312 L 692 328 L 615 336 L 555 328 Z" fill="url(#gunmetalDark)" stroke="#8fa3bd" stroke-width="2"/>
+        <path d="M 575 318 L 635 316 L 630 324 L 570 325 Z" fill="url(#hazardOrange)"/>
+
+        <!-- Rear Hub Axle Nut -->
+        <circle cx="470" cy="565" r="9" fill="#ff4d29" stroke="#ffffff" stroke-width="1.5"/>
+      </g>
+
+      <!-- ----------------------------------------------------------------------- -->
+      <!-- LAYER D: DRIVETRAIN (CHAIN, REAR CASSETTE, CHAINRING, RIGHT CRANK)      -->
+      <!-- ----------------------------------------------------------------------- -->
+      <g id="drivetrainGroup">
+        <!-- Rear Multi-Speed Cassette at (470, 565, r=28) -->
+        <g id="rearCassette" transform="translate(470, 565)">
+          <circle cx="0" cy="0" r="30" fill="#1b222c" stroke="#9eb0c7" stroke-width="4" stroke-dasharray="6 4"/>
+          <circle cx="0" cy="0" r="21" fill="none" stroke="#5c6f87" stroke-width="3" stroke-dasharray="5 3"/>
+          <circle cx="0" cy="0" r="11" fill="#00f0ff" opacity="0.7"/>
+        </g>
+
+        <!-- Closed Tensioned Bicycle Chain Loop connecting BB(755,585,r=54) and Rear Hub(470,565,r=28) -->
+        <!-- Base dark guide rail -->
+        <path d="M 470 537 L 755 531 A 54 54 0 0 1 755 639 L 470 593 A 28 28 0 0 1 470 537 Z"
+              fill="none" stroke="#161d26" stroke-width="10" stroke-linejoin="round"/>
+        <!-- Animated Metallic Chain Links (Clockwise scrolling via stroke-dashoffset) -->
+        <path id="chainLinksPath"
+              d="M 470 537 L 755 531 A 54 54 0 0 1 755 639 L 470 593 A 28 28 0 0 1 470 537 Z"
+              fill="none" stroke="#b8c7d9" stroke-width="6.5" stroke-dasharray="11 7" stroke-linecap="round"/>
+        <path id="chainInnerPinPath"
+              d="M 470 537 L 755 531 A 54 54 0 0 1 755 639 L 470 593 A 28 28 0 0 1 470 537 Z"
+              fill="none" stroke="#00f0ff" stroke-width="2" stroke-dasharray="3 15" opacity="0.75"/>
+
+        <!-- Bottom Bracket Large Aero Chainring at (755, 585, r=56) -->
+        <g id="chainringGroup" transform="translate(755, 585)">
+          <!-- Outer Machined Teeth -->
+          <circle cx="0" cy="0" r="56" fill="none" stroke="#9eb0c7" stroke-width="6" stroke-dasharray="7 5"/>
+          <!-- CNC Aero Spider Disc -->
+          <circle cx="0" cy="0" r="52" fill="url(#gunmetalSpec)" stroke="#c5d1de" stroke-width="2.5"/>
+          <!-- Weight-reduction cutouts that visibly rotate -->
+          <path d="M -14 -42 A 44 44 0 0 1 14 -42 L 8 -20 A 20 20 0 0 0 -8 -20 Z" fill="#0d1218"/>
+          <path d="M 42 -10 A 44 44 0 0 1 28 34 L 14 16 A 20 20 0 0 0 20 -5 Z" fill="#0d1218"/>
+          <path d="M -28 34 A 44 44 0 0 1 -42 -10 L -20 -5 A 20 20 0 0 0 -14 16 Z" fill="#0d1218"/>
+          <!-- Cyan Power-Meter Ring -->
+          <circle cx="0" cy="0" r="24" fill="none" stroke="#00f0ff" stroke-width="2.5" stroke-dasharray="18 8"/>
+          <circle cx="0" cy="0" r="14" fill="#121820" stroke="#ff4d29" stroke-width="2.5"/>
+        </g>
+
+        <!-- Near-Side Right Crank Arm (rotates from 755,585 to Right Pedal) -->
+        <g id="rightCrankGroup">
+          <line id="rightCrankOuter" x1="755" y1="585" x2="823" y2="585" stroke="#151b24" stroke-width="22" stroke-linecap="round"/>
+          <line id="rightCrankBody" x1="755" y1="585" x2="823" y2="585" stroke="url(#ceramicWhite)" stroke-width="14" stroke-linecap="round"/>
+          <line id="rightCrankGroove" x1="755" y1="585" x2="823" y2="585" stroke="#ff4d29" stroke-width="4" stroke-linecap="round"/>
+          <circle cx="755" cy="585" r="8" fill="#00f0ff"/>
+        </g>
+      </g>
+
+      <!-- ----------------------------------------------------------------------- -->
+      <!-- LAYER E: MECHA PELICAN BODY, TAIL, NECK, HEAD & GULAR POUCH             -->
+      <!-- ----------------------------------------------------------------------- -->
+      <g id="pelicanBodyGroup">
+
+        <!-- 1. PLASMA THRUSTER PLUMES (Tail Main Thruster + Lower Ventral Nozzle + Bike Nozzle) -->
+        <g id="thrusterPlumesGroup">
+          <!-- Main Tail Plasma Plume (Originating from tail nozzle at X=500, Y=292) -->
+          <g id="mainTailFlame" transform="translate(500, 292)">
+            <!-- Outer Orange-Red Shockwave Cone -->
+            <path d="M 0 -22 L -290 -58 L -230 0 L -290 58 L 0 22 Z" fill="url(#thrusterOrange)" opacity="0.85"/>
+            <!-- Mid Cyan-White High-Velocity Jet -->
+            <path d="M 5 -15 L -360 -28 L -430 0 L -360 28 L 5 15 Z" fill="url(#thrusterCyan)" filter="url(#glowCyan)"/>
+            <!-- Mach Diamonds (Shock Rings) -->
+            <ellipse cx="-65" cy="0" rx="22" ry="9" fill="#ffffff" opacity="0.9"/>
+            <ellipse cx="-145" cy="0" rx="18" ry="7" fill="#78f8ff" opacity="0.85"/>
+            <ellipse cx="-225" cy="0" rx="14" ry="5" fill="#ffffff" opacity="0.75"/>
+          </g>
+          <!-- Lower Chainstay Micro-Plume (Originating at X=408, Y=563) -->
+          <g id="bikeAuxFlame" transform="translate(408, 563)">
+            <path d="M 0 -10 L -165 -20 L -210 0 L -165 20 L 0 10 Z" fill="url(#thrusterCyan)" filter="url(#glowSoft)"/>
+            <ellipse cx="-42" cy="0" rx="14" ry="5" fill="#ffffff"/>
+          </g>
+        </g>
+
+        <!-- 2. ARTICULATED METALLIC TAIL FEATHERS & AFTERBURNER COWLING -->
+        <g id="tailAssembly" transform="translate(565, 290)">
+          <!-- Jet Exhaust Nozzle Barrel -->
+          <path d="M -10 -26 L -68 -32 L -76 -16 L -76 16 L -68 32 L -10 26 Z" fill="url(#gunmetalSpec)" stroke="#12171f" stroke-width="2.5"/>
+          <ellipse cx="-72" cy="0" rx="6" ry="22" fill="#00f0ff" filter="url(#glowSoft)"/>
+          <!-- Multi-Layered Metallic Tail Feathers (Fan out with physical inertia) -->
+          <g id="tailFeathersFan">
+            <!-- Lower Tail Blade -->
+            <path d="M 10 12 L -115 48 L -90 18 L -15 0 Z" fill="url(#ceramicShadowed)" stroke="#1b222c" stroke-width="2"/>
+            <!-- Middle Tail Blade with Hazard Stripe -->
+            <path d="M 20 0 L -138 14 L -115 -14 L 5 -10 Z" fill="url(#ceramicWhite)" stroke="#1b222c" stroke-width="2"/>
+            <path d="M -70 7 L -112 11 L -102 -6 L -62 -4 Z" fill="url(#hazardOrange)"/>
+            <!-- Upper Tail Spoiler Feather -->
+            <path d="M 35 -10 L -120 -34 L -88 -52 L 25 -26 Z" fill="url(#ceramicBevel)" stroke="#1b222c" stroke-width="2"/>
+            <line x1="-10" y1="-22" x2="-92" y2="-40" stroke="#00f0ff" stroke-width="2.5"/>
+          </g>
+        </g>
+
+        <!-- 3. DORSAL SPOILER FLAPS (Along Pelican Back) -->
+        <g id="dorsalSpoilers" transform="translate(740, 195)">
+          <path d="M 0 10 L -85 -18 L -62 -28 L 28 2 Z" fill="url(#ceramicWhite)" stroke="#1b222c" stroke-width="2"/>
+          <path d="M 75 -2 L -15 -28 L 8 -38 L 98 -10 Z" fill="url(#ceramicWhite)" stroke="#1b222c" stroke-width="2"/>
+          <line x1="-60" y1="-22" x2="-10" y2="-6" stroke="#ff4d29" stroke-width="3"/>
+          <line x1="10" y1="-32" x2="60" y2="-16" stroke="#ff4d29" stroke-width="3"/>
+        </g>
+
+        <!-- 4. BROAD AVIAN THORACIC TORSO & TURBINE REACTOR CORE -->
+        <g id="avianTorso">
+          <!-- Lower Belly & Pelvic Mechanical Chassis (Connects to Saddle & Hips at 675,330) -->
+          <path d="M 555 292 C 585 348, 650 365, 745 358 C 845 352, 925 325, 975 278 L 945 220 L 585 245 Z"
+                fill="url(#gunmetalDark)" stroke="#12171f" stroke-width="3"/>
+          <!-- Exposed Pelvic Ventral Ribbing & Gold/Cyan Pistons -->
+          <path d="M 625 335 L 795 345 L 820 318 L 615 308 Z" fill="#18202b" stroke="#47586e" stroke-width="2"/>
+          <line x1="705" y1="342" x2="885" y2="315" stroke="#ff4d29" stroke-width="4" stroke-dasharray="18 8"/>
+
+          <!-- Main Sculpted Ceramic White Avian Breast & Carapace Armor -->
+          <path d="M 548 278 C 580 205, 695 178, 845 182 C 935 185, 995 215, 1025 258 C 985 312, 905 338, 805 336 C 695 334, 610 308, 548 278 Z"
+                fill="url(#ceramicWhite)" stroke="#18202b" stroke-width="3"/>
+
+          <!-- Armor Panel Line Seams & Bevel Facets -->
+          <path d="M 575 268 C 635 220, 745 204, 885 208 L 930 245 C 815 242, 685 256, 575 268 Z"
+                fill="url(#ceramicBevel)" opacity="0.85"/>
+          <path d="M 640 205 L 675 295 M 780 185 L 765 332 M 920 198 L 895 322"
+                fill="none" stroke="#53657d" stroke-width="2"/>
+
+          <!-- Orange-Red Tactical Chest Stripe & Markings -->
+          <path d="M 912 196 L 962 208 L 932 312 L 895 322 Z" fill="url(#hazardOrange)"/>
+          <rect x="695" y="214" width="46" height="8" rx="2" fill="#ff4d29"/>
+          <circle cx="655" cy="238" r="4" fill="#1b222c"/>
+          <circle cx="798" cy="212" r="4" fill="#1b222c"/>
+
+          <!-- Built-In Glowing Cyan Thoracic Turbine Reactor Core at (838, 268) -->
+          <g id="chestReactor" transform="translate(838, 268)">
+            <!-- Armored Turbine Housing Ring -->
+            <circle cx="0" cy="0" r="44" fill="#101620" stroke="#8ea2ba" stroke-width="4"/>
+            <circle cx="0" cy="0" r="36" fill="#07121e" stroke="#2c3c52" stroke-width="3"/>
+            <!-- Glowing Cyan Core -->
+            <circle id="reactorGlowOrb" cx="0" cy="0" r="28" fill="url(#pouchCoreGlow)" filter="url(#glowCyan)"/>
+            <!-- Rotating Turbine Blades inside Chest Reactor -->
+            <g id="reactorBlades" stroke="#ffffff" stroke-width="2.5">
+              <line x1="-24" y1="0" x2="24" y2="0"/>
+              <line x1="0" y1="-24" x2="0" y2="24"/>
+              <line x1="-17" y1="-17" x2="17" y2="17"/>
+              <line x1="-17" y1="17" x2="17" y2="-17"/>
+            </g>
+            <circle cx="0" cy="0" r="11" fill="#ffffff" stroke="#00f0ff" stroke-width="3"/>
+          </g>
+        </g>
+
+        <!-- 5. STREAMLINED S-CURVED MECHANICAL NECK, HYDRAULICS & CABLES -->
+        <g id="neckAssembly">
+          <!-- Rear Braided High-Pressure Hydraulic Cables (with dynamic inertia) -->
+          <path id="neckCableOuter" d="M 955 215 C 930 165, 955 125, 1020 128"
+                fill="none" stroke="#1b222c" stroke-width="12" stroke-linecap="round"/>
+          <path id="neckCableCyan" d="M 955 215 C 930 165, 955 125, 1020 128"
+                fill="none" stroke="#00f0ff" stroke-width="3.5" stroke-dasharray="8 6" stroke-linecap="round"/>
+
+          <!-- Articulated S-Curve Neck Vertebrae Plates (Connecting Shoulder 975,235 to Head Base 1045,140) -->
+          <path d="M 955 248 C 962 195, 985 150, 1035 122 L 1078 152 C 1042 182, 1025 218, 1015 262 Z"
+                fill="url(#gunmetalSpec)" stroke="#12171f" stroke-width="2.5"/>
+          <!-- Layered Ceramic Neck Segments -->
+          <path d="M 958 225 L 1018 212 L 1012 238 L 952 246 Z" fill="url(#ceramicWhite)" stroke="#1b222c" stroke-width="2"/>
+          <path d="M 968 190 L 1030 182 L 1022 206 L 962 214 Z" fill="url(#ceramicWhite)" stroke="#1b222c" stroke-width="2"/>
+          <path d="M 985 156 L 1048 154 L 1036 176 L 975 182 Z" fill="url(#ceramicWhite)" stroke="#1b222c" stroke-width="2"/>
+
+          <!-- Exposed Gold/Silver Hydraulic Damper Rod along front of neck -->
+          <line x1="1008" y1="255" x2="1068" y2="165" stroke="#47586e" stroke-width="10" stroke-linecap="round"/>
+          <line x1="1022" y1="234" x2="1062" y2="174" stroke="#e8eef5" stroke-width="4.5" stroke-linecap="round"/>
+        </g>
+
+        <!-- 6. ICONIC MECHA PELICAN HEAD, FAIRING UPPER BEAK & SEMI-TRANSPARENT GULAR POUCH -->
+        <g id="pelicanHeadGroup" transform="translate(1045, 138)">
+
+          <!-- A. MASSIVE SEMI-TRANSPARENT LOWER BEAK GULAR POUCH (喉囊) -->
+          <g id="gularPouchGroup" transform="translate(35, 22)">
+            <!-- Deep Internal Cavity Backplate -->
+            <path d="M 0 0 L 325 -8 C 305 52, 235 128, 125 136 C 45 142, 5 88, 0 0 Z"
+                  fill="#071320" stroke="#18324a" stroke-width="2"/>
+
+            <!-- Glowing Internal Cyan Energy Core & Pulsating Conduits inside the Pouch -->
+            <g id="pouchInternalCore">
+              <ellipse id="pouchEnergyOrb" cx="135" cy="58" rx="95" ry="52" fill="url(#pouchCoreGlow)" filter="url(#glowCyan)"/>
+              <!-- Plasma Conduit Tubes curving through the pouch -->
+              <path d="M 15 24 C 75 92, 175 96, 285 12" fill="none" stroke="#00f0ff" stroke-width="5" filter="url(#glowSoft)"/>
+              <path d="M 28 48 C 88 112, 168 114, 248 38" fill="none" stroke="#78f8ff" stroke-width="3" stroke-dasharray="14 8"/>
+              <!-- Internal Hexagonal Reactor Cell & Cooling Grille -->
+              <polygon points="105,34 135,20 165,34 165,64 135,78 105,64" fill="#092238" stroke="#00f0ff" stroke-width="2.5"/>
+              <circle cx="135" cy="49" r="14" fill="#ffffff" filter="url(#glowSoft)"/>
+              <!-- Internal Cooling Louver Fin Array -->
+              <g stroke="#00f0ff" stroke-width="2" opacity="0.65">
+                <line x1="65" y1="30" x2="55" y2="75"/>
+                <line x1="80" y1="32" x2="70" y2="85"/>
+                <line x1="190" y1="32" x2="180" y2="82"/>
+                <line x1="206" y1="28" x2="196" y2="72"/>
+                <line x1="222" y1="24" x2="212" y2="60"/>
+              </g>
+            </g>
+
+            <!-- Translucent Armored Polymer Gular Pouch Outer Shell + Structural Ribs -->
+            <path d="M 0 0 L 325 -8 C 305 52, 235 128, 125 136 C 45 142, 5 88, 0 0 Z"
+                  fill="url(#pouchShellGrad)" stroke="#4ceeff" stroke-width="2" stroke-opacity="0.75"/>
+            <!-- External Titanium Rib Struts reinforcing the Gular Pouch -->
+            <path d="M 52 4 C 55 58, 72 108, 98 133 M 132 0 C 135 62, 145 112, 162 132 M 215 -4 C 212 46, 205 84, 198 112"
+                  fill="none" stroke="#8ea2ba" stroke-width="3" opacity="0.75"/>
+            <!-- Specular Glass Highlight along the pouch belly -->
+            <path d="M 35 76 C 85 124, 175 122, 255 58"
+                  fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" opacity="0.55"/>
+            <!-- Lower Mandible Frame Rail -->
+            <path d="M -5 -2 L 332 -8 L 318 8 L 0 12 Z" fill="url(#gunmetalSpec)" stroke="#12171f" stroke-width="2"/>
+          </g>
+
+          <!-- B. CRANIAL HELMET, REAR CREST FEATHERS & CYAN OPTICAL EYE -->
+          <!-- Swept-Back Cranial Crest Blades (Unmistakable Pelican Head Crown) -->
+          <path d="M -18 -26 L -105 -38 L -78 -12 L -5 2 Z" fill="url(#ceramicShadowed)" stroke="#1b222c" stroke-width="2"/>
+          <path d="M 0 -36 L -92 -62 L -60 -24 L 18 -12 Z" fill="url(#ceramicWhite)" stroke="#1b222c" stroke-width="2"/>
+          <!-- Cranial Armor Dome -->
+          <path d="M -22 14 C -25 -28, 18 -46, 78 -42 L 118 -18 L 95 24 L -5 26 Z"
+                fill="url(#ceramicWhite)" stroke="#18202b" stroke-width="2.8"/>
+          <!-- Dark Gunmetal Orbital Brow & Glowing Cyan Optical Sensor Eye -->
+          <path d="M 32 -24 L 96 -18 L 106 6 L 42 8 Z" fill="#141b24" stroke="#4c5d73" stroke-width="2"/>
+          <polygon points="50,-12 88,-10 94,0 56,2" fill="#00f0ff" filter="url(#glowSoft)"/>
+          <circle cx="74" cy="-5" r="3.5" fill="#ffffff"/>
+
+          <!-- C. LONG AERODYNAMIC AVIATION-FAIRING UPPER BEAK (上喙整流罩) -->
+          <!-- Extends 375px forward with pitot tube, panel seams, hazard tip & pelican nail hook -->
+          <path d="M 92 -28 L 345 -18 C 372 -16, 388 -6, 392 14 L 382 32 L 368 20 L 35 20 L 75 -16 Z"
+                fill="url(#ceramicBevel)" stroke="#18202b" stroke-width="2.8" stroke-linejoin="round"/>
+          <!-- Upper Beak Top Ridge Fairing -->
+          <path d="M 92 -28 L 345 -18 L 335 -6 L 82 -14 Z" fill="#ffffff" opacity="0.75"/>
+          <!-- High-Visibility Hazard Orange Nose Cone & Tactical Stripe -->
+          <path d="M 312 -19 L 358 -16 C 376 -14, 388 -4, 392 14 L 382 32 L 368 20 L 332 20 L 344 -2 Z"
+                fill="url(#hazardOrange)" stroke="#18202b" stroke-width="2"/>
+          <path d="M 278 -20 L 296 -19 L 284 20 L 266 20 Z" fill="url(#hazardOrange)"/>
+          <!-- Beak Panel Seams, Rivets & Air Intake Louvers -->
+          <path d="M 165 -24 L 152 20 M 235 -22 L 222 20" fill="none" stroke="#4c5d73" stroke-width="2"/>
+          <rect x="115" y="-6" width="28" height="6" rx="2" fill="#18202b"/>
+          <rect x="175" y="-4" width="38" height="4" rx="1" fill="#00f0ff" opacity="0.85"/>
+          <!-- Forward Supersonic Pitot Tube (空速管) protruding from upper beak -->
+          <line x1="378" y1="-6" x2="428" y2="-6" stroke="#c5d1de" stroke-width="3" stroke-linecap="round"/>
+          <line x1="378" y1="-6" x2="402" y2="-6" stroke="#ff4d29" stroke-width="5"/>
+          <circle cx="428" cy="-6" r="2.5" fill="#00f0ff"/>
+        </g>
+
+      </g>
+
+      <!-- ----------------------------------------------------------------------- -->
+      <!-- LAYER F: NEAR-SIDE (RIGHT) LEG 2-BONE IK & RIGHT PEDAL (Foreground)     -->
+      <!-- ----------------------------------------------------------------------- -->
+      <g id="rightLegIK">
+        <!-- Right Thigh (Femur/Tibiotarsus) anchored at Dynamic Hip (675, 330) -->
+        <g id="rightThigh" transform="translate(675, 330)">
+          <!-- Underslung Hydraulic Piston Cylinder -->
+          <line x1="15" y1="22" x2="160" y2="18" stroke="#263242" stroke-width="12" stroke-linecap="round"/>
+          <line x1="45" y1="22" x2="168" y2="18" stroke="#00f0ff" stroke-width="4" stroke-linecap="round"/>
+          <!-- Main Sculpted Ceramic White Thigh Armor -->
+          <path d="M -24 -22 L 122 -30 L 184 -10 L 186 14 L 130 24 L -18 18 Z"
+                fill="url(#ceramicWhite)" stroke="#151c26" stroke-width="2.8" stroke-linejoin="round"/>
+          <!-- Armor Bevel & Hazard Accent -->
+          <path d="M 10 -20 L 115 -24 L 135 -6 L 20 -4 Z" fill="#ffffff" opacity="0.65"/>
+          <path d="M 122 -28 L 154 -20 L 142 18 L 112 20 Z" fill="url(#hazardOrange)"/>
+          <!-- Hip Joint Servo Rosette -->
+          <circle cx="0" cy="0" r="24" fill="url(#gunmetalSpec)" stroke="#c5d1de" stroke-width="3"/>
+          <circle cx="0" cy="0" r="9" fill="#00f0ff" filter="url(#glowSoft)"/>
+        </g>
+
+        <!-- Right Lower Leg / Avian Tarsometatarsus anchored at Dynamic Knee -->
+        <g id="rightShin" transform="translate(810, 450)">
+          <!-- Rear Achilles Hydraulic Shock Strut -->
+          <line x1="10" y1="-22" x2="145" y2="-14" stroke="#374659" stroke-width="8" stroke-linecap="round"/>
+          <line x1="35" y1="-20" x2="152" y2="-13" stroke="#e8eef5" stroke-width="3.5" stroke-linecap="round"/>
+          <!-- Main Lower Leg Blade -->
+          <path d="M -14 -14 L 132 -18 L 180 -4 L 176 14 L 118 20 L -12 16 Z"
+                fill="url(#ceramicBevel)" stroke="#151c26" stroke-width="2.6" stroke-linejoin="round"/>
+          <!-- Dark Gunmetal Reinforcement Core & Cyan Line -->
+          <path d="M 28 -6 L 142 -6 L 150 6 L 34 8 Z" fill="#1b222c"/>
+          <line x1="38" y1="0" x2="138" y2="0" stroke="#00f0ff" stroke-width="2.5"/>
+          <!-- Knee Joint Servo Hub -->
+          <circle cx="0" cy="0" r="19" fill="url(#gunmetalDark)" stroke="#e8eef5" stroke-width="3"/>
+          <circle cx="0" cy="0" r="7" fill="#ff4d29"/>
+        </g>
+
+        <!-- Right Mechanical Avian Foot & Near Pedal (100% locked to Right Crank Tip) -->
+        <g id="rightFoot" transform="translate(823, 585)">
+          <!-- Futuristic Aero Clipless Pedal Platform -->
+          <rect x="-36" y="5" width="76" height="11" rx="3" fill="url(#gunmetalSpec)" stroke="#c5d1de" stroke-width="2"/>
+          <rect x="-18" y="8" width="42" height="5" fill="#ff4d29"/>
+          <!-- Mechanical Avian Talons (3 Forward Digits + 1 Rear Hallux Claw gripping pedal) -->
+          <!-- Rear Hallux Talon -->
+          <path d="M -14 2 L -42 10 L -32 -4 L -10 -6 Z" fill="url(#gunmetalDark)" stroke="#c5d1de" stroke-width="1.8"/>
+          <!-- Main Forward Articulated Talons -->
+          <path d="M -16 4 L 6 -15 L 40 -2 L 54 9 L 22 9 Z" fill="url(#ceramicWhite)" stroke="#151c26" stroke-width="2.4"/>
+          <path d="M 10 -6 L 38 -2 L 48 8 L 28 8 Z" fill="url(#hazardOrange)"/>
+          <!-- Ankle Pivot Bearing -->
+          <circle cx="0" cy="0" r="13" fill="url(#gunmetalDark)" stroke="#00f0ff" stroke-width="2.5"/>
+        </g>
+      </g>
+
+      <!-- ----------------------------------------------------------------------- -->
+      <!-- LAYER G: NEAR-SIDE (RIGHT) MECHANICAL WING ARM & FEATHERS (Foreground)  -->
+      <!-- ----------------------------------------------------------------------- -->
+      <g id="nearWingGroup">
+        <!-- Shoulder Pivot at (910, 245) -> Elbow (1005, 298) -> Handlebar Grip (1165, 375) -->
+        <!-- Swept-Back Layered Metallic Wing Feathers (Alula, Secondaries, Primaries) -->
+        <g id="wingFeathersCluster" transform="translate(965, 275)">
+          <!-- Deep Under-Feather Layer (Gunmetal + Cyan Edge) -->
+          <path d="M 10 15 L -275 38 L -240 64 L 30 34 Z" fill="url(#gunmetalDark)" stroke="#00f0ff" stroke-width="1.5"/>
+          <path d="M 0 2 L -315 -2 L -285 28 L 20 22 Z" fill="url(#gunmetalSpec)" stroke="#4c5d73" stroke-width="2"/>
+          <!-- Primary Ceramic White Metal Blades -->
+          <path d="M 22 10 L -245 14 L -215 40 L 38 26 Z" fill="url(#ceramicShadowed)" stroke="#18202b" stroke-width="2.2"/>
+          <path d="M 12 -4 L -285 -22 L -250 10 L 32 14 Z" fill="url(#ceramicWhite)" stroke="#18202b" stroke-width="2.4"/>
+          <path d="M -5 -18 L -245 -52 L -210 -20 L 20 -2 Z" fill="url(#ceramicBevel)" stroke="#18202b" stroke-width="2.4"/>
+          <!-- Hazard Orange & Cyan Feather Highlights -->
+          <path d="M -165 -14 L -248 -20 L -226 4 L -150 6 Z" fill="url(#hazardOrange)"/>
+          <line x1="-195" y1="-34" x2="-45" y2="-12" stroke="#00f0ff" stroke-width="3" filter="url(#glowSoft)"/>
+        </g>
+
+        <!-- Upper Wing Humerus Armor & Hydraulic Strut (910,245 -> 1005,298) -->
+        <path d="M 895 232 L 1018 286 L 1002 314 L 882 260 Z" fill="url(#ceramicWhite)" stroke="#18202b" stroke-width="2.6"/>
+        <line x1="912" y1="268" x2="995" y2="306" stroke="#00f0ff" stroke-width="3.5"/>
+
+        <!-- Forearm Radius/Ulna Mechanical Linkage extending to Handlebar (1005,298 -> 1165,375) -->
+        <line x1="1005" y1="306" x2="1160" y2="380" stroke="#2c3847" stroke-width="18" stroke-linecap="round"/>
+        <path d="M 1002 284 L 1168 364 L 1158 384 L 992 308 Z" fill="url(#ceramicBevel)" stroke="#18202b" stroke-width="2.5"/>
+        <path d="M 1075 320 L 1128 345 L 1120 360 L 1068 335 Z" fill="url(#hazardOrange)"/>
+
+        <!-- Shoulder & Elbow Servo Rosettes -->
+        <circle cx="905" cy="246" r="20" fill="url(#gunmetalSpec)" stroke="#e8eef5" stroke-width="3"/>
+        <circle cx="905" cy="246" r="7" fill="#00f0ff"/>
+        <circle cx="1005" cy="298" r="15" fill="url(#gunmetalDark)" stroke="#c5d1de" stroke-width="2.5"/>
+        <circle cx="1005" cy="298" r="5" fill="#ff4d29"/>
+
+        <!-- Wing-Wrist Mechanical Talons Firmly Gripping Drop Handlebar at (1165, 375) -->
+        <g transform="translate(1165, 375)">
+          <path d="M -18 -14 L 14 -12 L 24 6 L 8 18 L -12 12 Z" fill="url(#ceramicWhite)" stroke="#18202b" stroke-width="2.2"/>
+          <!-- Curled Mechanical Fingers wrapped around Handlebar Grip -->
+          <path d="M 6 -8 C 22 -4, 24 14, 6 16" fill="none" stroke="#ff4d29" stroke-width="5" stroke-linecap="round"/>
+          <circle cx="0" cy="0" r="9" fill="#18202b" stroke="#00f0ff" stroke-width="2.5"/>
+        </g>
+      </g>
+
+    </g>
+
+    <!-- Foreground High-Speed Air Slash Lines (Minimal, non-intrusive) -->
+    <g id="speedLinesFg" stroke-linecap="round" pointer-events="none">
+      <line class="spd-line-fg" x1="120" y1="795" x2="620" y2="795" stroke="#ffffff" stroke-width="2" opacity="0.35"/>
+      <line class="spd-line-fg" x1="1050" y1="830" x2="1520" y2="830" stroke="#00f0ff" stroke-width="2.5" opacity="0.4"/>
+    </g>
+  </svg>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ============================================================================
+  // 1. KINEMATIC CONSTANTS & MECHANICAL GEOMETRY
+  // ============================================================================
+  const BB_X = 755;          // Bottom Bracket (Crank Center) X
+  const BB_Y = 585;          // Bottom Bracket (Crank Center) Y
+  const CRANK_R = 68;        // Crank Arm Radius (px)
+
+  const BASE_HIP_X = 675;    // Pelican Hip Joint Base X
+  const BASE_HIP_Y = 330;    // Pelican Hip Joint Base Y
+
+  const L1 = 182;            // Upper Leg (Thigh / Tibiotarsus) Length (px)
+  const L2 = 174;            // Lower Leg (Tarsometatarsus) Length (px)
+
+  const RAD_TO_DEG = 180 / Math.PI;
+
+  // DOM Elements - Left Leg & Crank (Far side)
+  const leftCrankArm = document.getElementById("leftCrankArm");
+  const leftCrankHighlight = document.getElementById("leftCrankHighlight");
+  const leftThigh = document.getElementById("leftThigh");
+  const leftShin = document.getElementById("leftShin");
+  const leftFoot = document.getElementById("leftFoot");
+
+  // DOM Elements - Right Leg & Crank (Near side)
+  const rightCrankOuter = document.getElementById("rightCrankOuter");
+  const rightCrankBody = document.getElementById("rightCrankBody");
+  const rightCrankGroove = document.getElementById("rightCrankGroove");
+  const rightThigh = document.getElementById("rightThigh");
+  const rightShin = document.getElementById("rightShin");
+  const rightFoot = document.getElementById("rightFoot");
+
+  // DOM Elements - Synchronized Wheels & Drivetrain
+  const rearWheelInstance = document.getElementById("rearWheelInstance");
+  const frontWheelInstance = document.getElementById("frontWheelInstance");
+  const chainringGroup = document.getElementById("chainringGroup");
+  const rearCassette = document.getElementById("rearCassette");
+  const chainLinksPath = document.getElementById("chainLinksPath");
+  const chainInnerPinPath = document.getElementById("chainInnerPinPath");
+
+  // DOM Elements - Secondary Motion & Mecha Sub-Assemblies
+  const masterRig = document.getElementById("masterRig");
+  const pelicanBodyGroup = document.getElementById("pelicanBodyGroup");
+  const pelicanHeadGroup = document.getElementById("pelicanHeadGroup");
+  const gularPouchGroup = document.getElementById("gularPouchGroup");
+  const wingFeathersCluster = document.getElementById("wingFeathersCluster");
+  const tailFeathersFan = document.getElementById("tailFeathersFan");
+  const dorsalSpoilers = document.getElementById("dorsalSpoilers");
+  const frontForkGroup = document.getElementById("frontForkGroup");
+  const reactorBlades = document.getElementById("reactorBlades");
+  const reactorGlowOrb = document.getElementById("reactorGlowOrb");
+  const pouchEnergyOrb = document.getElementById("pouchEnergyOrb");
+  const neckCableOuter = document.getElementById("neckCableOuter");
+  const neckCableCyan = document.getElementById("neckCableCyan");
+
+  // DOM Elements - Thrusters & Environment
+  const mainTailFlame = document.getElementById("mainTailFlame");
+  const bikeAuxFlame = document.getElementById("bikeAuxFlame");
+  const groundGlowReactor = document.getElementById("groundGlowReactor");
+  const groundGlowPouch = document.getElementById("groundGlowPouch");
+  const groundGlowThruster = document.getElementById("groundGlowThruster");
+  const bgCityFar = document.getElementById("bgCityFar");
+  const bgPylonsMid = document.getElementById("bgPylonsMid");
+  const railPosts = document.getElementById("railPosts");
+  const roadStripeMain = document.getElementById("roadStripeMain");
+  const roadStripeHazard = document.getElementById("roadStripeHazard");
+  const roadSlickStreak = document.getElementById("roadSlickStreak");
+  const sparkLayer = document.getElementById("sparkLayer");
+
+  // Speed Line Elements
+  const speedLinesBg = Array.from(document.querySelectorAll(".spd-line"));
+  const speedLinesFg = Array.from(document.querySelectorAll(".spd-line-fg"));
+
+  // HUD Controls
+  const boostBtn = document.getElementById("boostBtn");
+  const hudStatus = document.getElementById("hudStatus");
+
+  // ============================================================================
+  // 2. EXACT 2-BONE INVERSE KINEMATICS SOLVER (LAW OF COSINES)
+  // ============================================================================
+  /**
+   * Computes knee position and bone angles so Hip -> Knee -> Pedal is exact.
+   * Bends knee forward (clockwise from hip-to-pedal vector in screen coordinates).
+   */
+  function solve2BoneIK(hipX, hipY, pedalX, pedalY, l1, l2) {
+    const dx = pedalX - hipX;
+    const dy = pedalY - hipY;
+    let dist = Math.hypot(dx, dy);
+
+    // Clamp reach within physical bone limits
+    const maxReach = l1 + l2 - 0.5;
+    const minReach = Math.abs(l1 - l2) + 0.5;
+    if (dist > maxReach) dist = maxReach;
+    if (dist < minReach) dist = minReach;
+
+    // Angle of direct line from Hip to Pedal
+    const baseAngle = Math.atan2(dy, dx);
+
+    // Law of Cosines for interior angle at Hip
+    const cosAlpha = (l1 * l1 + dist * dist - l2 * l2) / (2 * l1 * dist);
+    const alpha = Math.acos(Math.max(-1, Math.min(1, cosAlpha)));
+
+    // Knee bends forward (toward front of bike, which is smaller angle in screen Y-down coords)
+    const thighAngleRad = baseAngle - alpha;
+    const kneeX = hipX + l1 * Math.cos(thighAngleRad);
+    const kneeY = hipY + l1 * Math.sin(thighAngleRad);
+
+    // Shin angle from Knee to exact Pedal coordinates
+    const shinAngleRad = Math.atan2(pedalY - kneeY, pedalX - kneeX);
+
+    return {
+      kneeX,
+      kneeY,
+      thighDeg: thighAngleRad * RAD_TO_DEG,
+      shinDeg: shinAngleRad * RAD_TO_DEG
+    };
+  }
+
+  // ============================================================================
+  // 3. TIRE SPARK & SPEED LINE PARTICLE SYSTEM
+  // ============================================================================
+  const MAX_SPARKS = 22;
+  const sparks = [];
+
+  for (let i = 0; i < MAX_SPARKS; i++) {
+    const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    line.setAttribute("stroke-linecap", "round");
+    sparkLayer.appendChild(line);
+    sparks.push({
+      el: line,
+      x: 455,
+      y: 748,
+      vx: -400,
+      vy: -80,
+      life: Math.random(),
+      maxLife: 0.25 + Math.random() * 0.35,
+      isCyan: i % 3 === 0
+    });
+  }
+
+  function resetSpark(s, boostFactor) {
+    // Spawn near rear tire ground contact patch (450, 748)
+    s.x = 455 + (Math.random() - 0.5) * 30;
+    s.y = 748 + (Math.random() - 0.5) * 6;
+    const speedMult = 1 + boostFactor * 1.35;
+    s.vx = -(420 + Math.random() * 520) * speedMult;
+    s.vy = -(45 + Math.random() * 190 * (1 + boostFactor * 0.6));
+    s.life = 0;
+    s.maxLife = 0.18 + Math.random() * 0.28;
+    s.isCyan = Math.random() < (0.28 + boostFactor * 0.35);
+  }
+
+  // Initialize speed line data
+  const allSpeedLines = [...speedLinesBg, ...speedLinesFg].map((el, idx) => ({
+    el,
+    x: Math.random() * 1600,
+    y: parseFloat(el.getAttribute("y1")) || (120 + idx * 85),
+    len: 180 + Math.random() * 260,
+    speed: 1450 + Math.random() * 950,
+    baseOpacity: idx < speedLinesBg.length ? 0.22 : 0.36
+  }));
+
+  // ============================================================================
+  // 4. OVERDRIVE BOOST STATE MANAGEMENT
+  // ============================================================================
+  let boostEndTime = 0;
+  let boostIntensity = 0; // Smoothly interpolated 0.0 -> 1.0
+
+  function triggerBoost() {
+    const now = performance.now();
+    boostEndTime = now + 2100; // ~2.1 seconds of Overdrive
+    boostBtn.classList.add("active");
+    hudStatus.classList.add("boosting");
+  }
+
+  boostBtn.addEventListener("click", () => {
+    triggerBoost();
+    boostBtn.blur();
+  });
+
+  window.addEventListener("keydown", (e) => {
+    if (e.code === "Space") {
+      e.preventDefault();
+      triggerBoost();
+    }
+  });
+
+  // ============================================================================
+  // 5. MAIN ANIMATION LOOP (requestAnimationFrame)
+  // ============================================================================
+  let lastTime = performance.now();
+  let crankTheta = 0.4;       // Crank angle in radians (increases = clockwise rotation)
+  let wheelAngleDeg = 0;      // Wheel rotation in degrees (increases = clockwise rotation)
+  let chainOffset = 0;        // Chain dash offset (decreases = clockwise travel)
+  let cityFarOffset = 0;
+  let pylonMidOffset = 0;
+  let railNearOffset = 0;
+  let roadDashOffset = 0;
+
+  function animate(now) {
+    const rawDt = Math.min((now - lastTime) / 1000, 0.05);
+    lastTime = now;
+
+    // Smoothly interpolate boostIntensity toward target (1 during boost, 0 in cruise)
+    const isBoostActive = now < boostEndTime;
+    if (!isBoostActive && boostBtn.classList.contains("active")) {
+      boostBtn.classList.remove("active");
+      hudStatus.classList.remove("boosting");
+    }
+    const targetBoost = isBoostActive ? 1.0 : 0.0;
+    const lerpRate = isBoostActive ? 8.5 : 3.2;
+    boostIntensity += (targetBoost - boostIntensity) * Math.min(1, rawDt * lerpRate);
+
+    // Effective pedaling cadence & road speed multiplier
+    const speedMultiplier = 1.0 + boostIntensity * 1.25;
+    const omega = 6.4 * speedMultiplier; // Crank angular velocity (rad/s)
+    crankTheta = (crankTheta + omega * rawDt) % (Math.PI * 2);
+
+    // --------------------------------------------------------------------------
+    // A. SYNCHRONIZED CLOCKWISE ROTATION: CRANK, WHEELS, CHAINRING & CHAIN
+    // --------------------------------------------------------------------------
+    // Gear ratio ~2.7x: wheels spin faster than crank, strictly clockwise (+)
+    const crankDeltaDeg = (omega * rawDt) * RAD_TO_DEG;
+    const wheelDeltaDeg = crankDeltaDeg * 2.75;
+    wheelAngleDeg = (wheelAngleDeg + wheelDeltaDeg) % 360;
+
+    rearWheelInstance.setAttribute("transform", `translate(470, 565) rotate(${wheelAngleDeg.toFixed(2)})`);
+    frontWheelInstance.setAttribute("transform", `translate(1150, 565) rotate(${wheelAngleDeg.toFixed(2)})`);
+
+    const crankDeg = (crankTheta * RAD_TO_DEG) % 360;
+    chainringGroup.setAttribute("transform", `translate(755, 585) rotate(${crankDeg.toFixed(2)})`);
+    rearCassette.setAttribute("transform", `translate(470, 565) rotate(${(wheelAngleDeg * 1.1).toFixed(2)})`);
+
+    // Chain path goes clockwise: top run left->right, bottom run right->left.
+    // Negative stroke-dashoffset advances dash pattern clockwise along the path!
+    chainOffset = (chainOffset - omega * rawDt * 56) % 180;
+    chainLinksPath.setAttribute("stroke-dashoffset", chainOffset.toFixed(2));
+    chainInnerPinPath.setAttribute("stroke-dashoffset", chainOffset.toFixed(2));
+
+    // --------------------------------------------------------------------------
+    // B. SUSPENSION HEAVE & INERTIAL SECONDARY MOTION (2x Per Pedal Revolution)
+    // --------------------------------------------------------------------------
+    // Power stroke peaks twice per crank revolution (sin(2 * theta))
+    const powerPulse = Math.sin(crankTheta * 2);
+    const phaseLag1 = Math.sin(crankTheta * 2 - 0.65);
+    const phaseLag2 = Math.sin(crankTheta * 2 - 1.35);
+
+    // Body suspension heave & aggressive forward crouch during BOOST
+    const bodyBobY = powerPulse * (3.8 + boostIntensity * 2.4) + boostIntensity * 5.5;
+    const bodyShiftX = boostIntensity * 8.0 + Math.cos(crankTheta * 2) * 1.8;
+    const bodyPitchDeg = powerPulse * 0.9 + boostIntensity * 2.4;
+
+    pelicanBodyGroup.setAttribute(
+      "transform",
+      `translate(${bodyShiftX.toFixed(2)}, ${bodyBobY.toFixed(2)}) rotate(${bodyPitchDeg.toFixed(2)}, 755, 310)`
+    );
+
+    // Whole bike subtle road micro-vibration + suspension dip
+    const rigHeaveY = Math.sin(crankTheta * 2 - 0.25) * 1.4;
+    masterRig.setAttribute("transform", `translate(0, ${rigHeaveY.toFixed(2)})`);
+
+    // Front fork micro-suspension compression
+    const forkCompress = Math.max(-3.5, Math.min(3.5, powerPulse * 2.2 + boostIntensity * 1.8));
+    frontForkGroup.setAttribute("transform", `translate(${(forkCompress * 0.38).toFixed(2)}, ${forkCompress.toFixed(2)})`);
+
+    // Head aero-tuck stabilization & Gular Pouch inertial oscillation
+    const headPitch = -bodyPitchDeg * 0.65 + phaseLag1 * 1.1 - boostIntensity * 1.2;
+    pelicanHeadGroup.setAttribute("transform", `translate(1045, 138) rotate(${headPitch.toFixed(2)}, 20, 0)`);
+
+    const pouchSwing = phaseLag2 * (2.2 + boostIntensity * 1.6);
+    const pouchScaleY = 1.0 + Math.sin(crankTheta * 2 - 1.1) * 0.028;
+    gularPouchGroup.setAttribute(
+      "transform",
+      `translate(35, 22) rotate(${pouchSwing.toFixed(2)}, 20, 0) scale(1, ${pouchScaleY.toFixed(3)})`
+    );
+
+    // Layered metallic wing feathers, tail feathers & dorsal spoilers inertial flutter
+    const highFreqFlutter = Math.sin(now * 0.045) * boostIntensity * 1.6;
+    const wingFeatherAngle = phaseLag1 * 2.6 + highFreqFlutter;
+    wingFeathersCluster.setAttribute("transform", `translate(965, 275) rotate(${wingFeatherAngle.toFixed(2)})`);
+
+    const tailFanAngle = phaseLag2 * 3.2 - boostIntensity * 2.5 + highFreqFlutter;
+    tailFeathersFan.setAttribute("transform", `rotate(${tailFanAngle.toFixed(2)})`);
+
+    const spoilerAngle = phaseLag1 * 2.8 + boostIntensity * 4.5;
+    dorsalSpoilers.setAttribute("transform", `translate(740, 195) rotate(${spoilerAngle.toFixed(2)})`);
+
+    // Neck hydraulic cable flexing via control point modulation
+    const cableFlexY = 165 + phaseLag2 * 8;
+    const cablePath = `M 955 215 C 930 ${cableFlexY.toFixed(1)}, 955 125, 1020 128`;
+    neckCableOuter.setAttribute("d", cablePath);
+    neckCableCyan.setAttribute("d", cablePath);
+
+    // Chest Turbine Reactor Spin & Glow Pulsation
+    const reactorSpinDeg = (now * (0.28 + boostIntensity * 0.65)) % 360;
+    reactorBlades.setAttribute("transform", `rotate(${reactorSpinDeg.toFixed(1)})`);
+    const corePulse = 1 + Math.sin(now * 0.015) * 0.08 + boostIntensity * 0.28;
+    reactorGlowOrb.setAttribute("transform", `scale(${corePulse.toFixed(3)})`);
+    pouchEnergyOrb.setAttribute("transform", `translate(135, 58) scale(${corePulse.toFixed(3)}) translate(-135, -58)`);
+
+    // --------------------------------------------------------------------------
+    // C. EXACT 2-BONE INVERSE KINEMATICS FOR RIGHT & LEFT LEGS
+    // --------------------------------------------------------------------------
+    // Current world-space Hip position (moves with pelicanBodyGroup)
+    const currentHipX = BASE_HIP_X + bodyShiftX;
+    const currentHipY = BASE_HIP_Y + bodyBobY;
+
+    // 1. Right Crank & Right Leg (Angle = crankTheta)
+    const rPedalX = BB_X + CRANK_R * Math.cos(crankTheta);
+    const rPedalY = BB_Y + CRANK_R * Math.sin(crankTheta);
+
+    rightCrankOuter.setAttribute("x2", rPedalX.toFixed(2));
+    rightCrankOuter.setAttribute("y2", rPedalY.toFixed(2));
+    rightCrankBody.setAttribute("x2", rPedalX.toFixed(2));
+    rightCrankBody.setAttribute("y2", rPedalY.toFixed(2));
+    rightCrankGroove.setAttribute("x2", rPedalX.toFixed(2));
+    rightCrankGroove.setAttribute("y2", rPedalY.toFixed(2));
+
+    const rIK = solve2BoneIK(currentHipX, currentHipY, rPedalX, rPedalY, L1, L2);
+    rightThigh.setAttribute(
+      "transform",
+      `translate(${currentHipX.toFixed(2)}, ${currentHipY.toFixed(2)}) rotate(${rIK.thighDeg.toFixed(2)})`
+    );
+    rightShin.setAttribute(
+      "transform",
+      `translate(${rIK.kneeX.toFixed(2)}, ${rIK.kneeY.toFixed(2)}) rotate(${rIK.shinDeg.toFixed(2)})`
+    );
+    // Foot stays 100% locked to the pedal with natural ankle rocking
+    const rAnkleDeg = Math.sin(crankTheta - 0.5) * 11;
+    rightFoot.setAttribute(
+      "transform",
+      `translate(${rPedalX.toFixed(2)}, ${rPedalY.toFixed(2)}) rotate(${rAnkleDeg.toFixed(2)})`
+    );
+
+    // 2. Left Crank & Left Leg (Angle = crankTheta + PI, strictly 180 degrees opposite)
+    const lTheta = crankTheta + Math.PI;
+    const lPedalX = BB_X + CRANK_R * Math.cos(lTheta);
+    const lPedalY = BB_Y + CRANK_R * Math.sin(lTheta);
+
+    leftCrankArm.setAttribute("x2", lPedalX.toFixed(2));
+    leftCrankArm.setAttribute("y2", lPedalY.toFixed(2));
+    leftCrankHighlight.setAttribute("x2", lPedalX.toFixed(2));
+    leftCrankHighlight.setAttribute("y2", lPedalY.toFixed(2));
+
+    const lIK = solve2BoneIK(currentHipX - 10, currentHipY - 4, lPedalX, lPedalY, L1, L2);
+    leftThigh.setAttribute(
+      "transform",
+      `translate(${(currentHipX - 10).toFixed(2)}, ${(currentHipY - 4).toFixed(2)}) rotate(${lIK.thighDeg.toFixed(2)})`
+    );
+    leftShin.setAttribute(
+      "transform",
+      `translate(${lIK.kneeX.toFixed(2)}, ${lIK.kneeY.toFixed(2)}) rotate(${lIK.shinDeg.toFixed(2)})`
+    );
+    const lAnkleDeg = Math.sin(lTheta - 0.5) * 11;
+    leftFoot.setAttribute(
+      "transform",
+      `translate(${lPedalX.toFixed(2)}, ${lPedalY.toFixed(2)}) rotate(${lAnkleDeg.toFixed(2)})`
+    );
+
+    // --------------------------------------------------------------------------
+    // D. THRUSTER PLASMA PLUMES & AMBIENT GROUND REFLECTION GLOW
+    // --------------------------------------------------------------------------
+    const flameJitter = 0.92 + Math.sin(now * 0.06) * 0.12 + Math.cos(now * 0.095) * 0.08;
+    const mainFlameScaleX = (0.26 + boostIntensity * 1.15) * flameJitter;
+    const mainFlameScaleY = 0.55 + boostIntensity * 0.65;
+    mainTailFlame.setAttribute(
+      "transform",
+      `translate(500, 292) scale(${mainFlameScaleX.toFixed(3)}, ${mainFlameScaleY.toFixed(3)})`
+    );
+    mainTailFlame.setAttribute("opacity", (0.48 + boostIntensity * 0.52).toFixed(2));
+
+    const auxFlameScaleX = (0.22 + boostIntensity * 1.05) * flameJitter;
+    bikeAuxFlame.setAttribute(
+      "transform",
+      `translate(408, 563) scale(${auxFlameScaleX.toFixed(3)}, ${mainFlameScaleY.toFixed(3)})`
+    );
+    bikeAuxFlame.setAttribute("opacity", (0.42 + boostIntensity * 0.58).toFixed(2));
+
+    // Ground bounce light modulation
+    groundGlowReactor.setAttribute("opacity", (0.65 + boostIntensity * 0.35).toFixed(2));
+    groundGlowPouch.setAttribute("opacity", (0.7 + boostIntensity * 0.3).toFixed(2));
+    groundGlowThruster.setAttribute("opacity", (0.28 + boostIntensity * 0.68 * flameJitter).toFixed(2));
+
+    // --------------------------------------------------------------------------
+    // E. PARALLAX CYBERPUNK HIGHWAY, TIRE SPARKS & SPEED LINES
+    // --------------------------------------------------------------------------
+    cityFarOffset = (cityFarOffset - 95 * speedMultiplier * rawDt) % 1600;
+    pylonMidOffset = (pylonMidOffset - 380 * speedMultiplier * rawDt) % 1600;
+    railNearOffset = (railNearOffset - 920 * speedMultiplier * rawDt) % 400;
+    roadDashOffset = (roadDashOffset + 1380 * speedMultiplier * rawDt) % 640;
+
+    bgCityFar.setAttribute("transform", `translate(${cityFarOffset.toFixed(1)}, 0)`);
+    bgPylonsMid.setAttribute("transform", `translate(${pylonMidOffset.toFixed(1)}, 0)`);
+    railPosts.setAttribute("transform", `translate(${railNearOffset.toFixed(1)}, 0)`);
+
+    roadStripeMain.setAttribute("stroke-dashoffset", roadDashOffset.toFixed(1));
+    roadStripeHazard.setAttribute("stroke-dashoffset", (roadDashOffset * 1.1).toFixed(1));
+    roadSlickStreak.setAttribute("stroke-dashoffset", (roadDashOffset * 0.85).toFixed(1));
+
+    // Update Tire Friction Sparks
+    const activeSparkRatio = 0.42 + boostIntensity * 0.58;
+    const activeSparkCount = Math.floor(MAX_SPARKS * activeSparkRatio);
+
+    for (let i = 0; i < MAX_SPARKS; i++) {
+      const s = sparks[i];
+      if (i >= activeSparkCount) {
+        s.el.setAttribute("opacity", "0");
+        continue;
+      }
+      s.life += rawDt;
+      if (s.life >= s.maxLife) {
+        resetSpark(s, boostIntensity);
+      }
+      // Gravity & bounce on road surface (Y = 750)
+      s.vy += 460 * rawDt;
+      s.x += s.vx * rawDt;
+      s.y += s.vy * rawDt;
+      if (s.y > 750) {
+        s.y = 750;
+        s.vy = -Math.abs(s.vy) * 0.45;
+      }
+
+      const progress = s.life / s.maxLife;
+      const alpha = Math.max(0, 1 - progress);
+      const tailX = s.x - s.vx * (0.026 + boostIntensity * 0.015);
+      const tailY = s.y - s.vy * 0.022;
+
+      s.el.setAttribute("x1", s.x.toFixed(1));
+      s.el.setAttribute("y1", s.y.toFixed(1));
+      s.el.setAttribute("x2", tailX.toFixed(1));
+      s.el.setAttribute("y2", tailY.toFixed(1));
+      s.el.setAttribute("stroke", s.isCyan ? "#78f8ff" : "#ff8533");
+      s.el.setAttribute("stroke-width", (2.6 * (1 - progress * 0.5)).toFixed(1));
+      s.el.setAttribute("opacity", alpha.toFixed(2));
+    }
+
+    // Update Speed Lines
+    for (let i = 0; i < allSpeedLines.length; i++) {
+      const sl = allSpeedLines[i];
+      sl.x -= sl.speed * speedMultiplier * rawDt;
+      const currentLen = sl.len * (1 + boostIntensity * 0.85);
+      if (sl.x + currentLen < -50) {
+        sl.x = 1620 + Math.random() * 250;
+      }
+      sl.el.setAttribute("x1", sl.x.toFixed(1));
+      sl.el.setAttribute("x2", (sl.x + currentLen).toFixed(1));
+      const lineAlpha = Math.min(0.85, sl.baseOpacity + boostIntensity * 0.42);
+      sl.el.setAttribute("opacity", lineAlpha.toFixed(2));
+    }
+
+    requestAnimationFrame(animate);
+  }
+
+  // Initialize sparks and start immediately
+  for (let i = 0; i < MAX_SPARKS; i++) {
+    resetSpark(sparks[i], 0);
+    sparks[i].life = Math.random() * sparks[i].maxLife;
+  }
+  requestAnimationFrame(animate);
+})();
+</script>
+</body>
+</html>

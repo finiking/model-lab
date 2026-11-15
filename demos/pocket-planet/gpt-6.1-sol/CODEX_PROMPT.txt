@@ -1,0 +1,25 @@
+You own `/Users/fini/workspace/codex/pocket-planet-sol` ONLY. Do not read or modify `/Users/fini/workspace/codex/pocket-planet` or any sibling project directory (except reading `/Users/fini/workspace/codex/skarwind-flight-sim/package.json`, `vite.config.ts`, `tsconfig.json`, `scripts/build-wall-bundle.mjs`, and `scripts/record-showcase.mjs` as build/capture boilerplate).
+
+Goal: Build and verify 《掌中造物星盘 · 微缩行星演化球》(Pocket Planet: Brass Astrolabe Terrarium) — a playable miniature diorama planet encased in a brass astrolabe glass sphere in Three.js + React Three Fiber + `@react-three/postprocessing` (zero external assets).
+
+Setup already done:
+- `/Users/fini/workspace/codex/pocket-planet-sol/node_modules` is symlinked to `/Users/fini/workspace/codex/skarwind-flight-sim/node_modules` (`three ^0.186.1`, `@react-three/fiber ^9.8.2`, `@react-three/drei ^10.7.9`, `@react-three/postprocessing ^3.2.2`, `postprocessing ^6.39.6`, `react ^19.3.0`, `vite ^6.3.0`, `typescript ^5.8.3`).
+- Inspect `/Users/fini/workspace/codex/skarwind-flight-sim/package.json`, `tsconfig.json`, `vite.config.ts`, `scripts/build-wall-bundle.mjs`, and `scripts/record-showcase.mjs`, and create compatible files inside `/Users/fini/workspace/codex/pocket-planet-sol` to produce `dist-wall/index.html`.
+
+Visual & Gameplay Spec (tactile toy-like luxury macro look):
+1. Brass Astrolabe & Glass Terrarium Enclosure:
+   - Rotating brushed-gold / aged-brass astrolabe gimbal rings with engraved degree ticks & cardinal glyphs surrounding a glossy refractive/Fresnel crystal sphere (`meshPhysicalMaterial` or custom glass rim shader so the inner planet stays crystal-clear and never milky!).
+   - Warm rim lighting + crisp tilt-shift / toy-scale lighting palette on a deep midnight observatory backdrop.
+2. Living Procedural Low-Poly Miniature Planet inside:
+   - Multi-biome displaced terrain: teal-turquoise animated ocean shader with coastal foam, lush emerald lowlands, glowing bioluminescent spring forests, snow peaks, puffy floating cloud rings, AND a tiny glowing **orbital miniature train** puffing along an equatorial track!
+3. 4 God-Mode Interactive Controls (plus drag-to-spin astrolabe + scroll zoom + click-on-planet action + edge-pinned clean sleek HUD):
+   - **Spring Bloom / Terraforming**: sprouts glowing trees, flowers, and aurora wisps across terrain; train speeds up.
+   - **Meteor Strike (click planet or button)**: calls down a flaming meteorite that blasts a molten glowing lava crater + expanding circular tsunami ripple across the ocean!
+   - **Polar Ice Age & Aurora**: rapidly freezes oceans into faceted ice shelves while shimmering emerald/violet polar aurora ribbons dance above the poles!
+   - **Solar Dawn / Day-Night Astrolabe Dial**: smooth slider/toggle sweeping golden sunset light into glowing bioluminescent night cities & train headlights!
+4. Verification & Showcase Reel:
+   - `npx tsc --noEmit && npm run build && npm run build:wall` passes cleanly with 0 errors.
+   - Create `scripts/record-showcase.mjs` (using `playwright-core` at `/Users/fini/workspace/dsh-plugins/dsh-game-studio/node_modules/playwright-core/index.mjs`, `/Applications/Google Chrome.app/Contents/MacOS/Google Chrome` with `['--use-gl=angle','--use-angle=metal','--enable-webgl','--ignore-gpu-blocklist','--autoplay-policy=no-user-gesture-required','--mute-audio','--hide-scrollbars']`, and `/opt/homebrew/bin/ffmpeg` with `-c:v libx264 -preset medium -crf 18 -vf format=yuv420p -pix_fmt yuv420p -movflags +faststart`).
+   - Virtualize RAF & `performance.now` to record **exactly 16.0s at 1440x810 @ 60fps (960 frames)** -> `/Users/fini/workspace/codex/artifacts/pocket-planet-sol-gameplay.mp4`, covering all 4 showcase beats cleanly (`0-4s` golden day + brass astrolabe + miniature train + spring bloom, `4-9s` flaming meteor strike + ocean tsunami + molten crater, `9-13.5s` polar ice age + night bioluminescence + aurora ribbons, `13.5-16s` solar dawn sweep back to golden morning).
+   - Also save `/Users/fini/workspace/codex/pocket-planet-sol/dist-wall/cover.jpg`, `shot-1.png`, `shot-2.png`, `shot-3.png`.
+   - Visually inspect all 3 screenshots via image viewing / check and run `ffprobe` to verify `1440x810`, `h264`, `yuv420p`, `60/1`, `16.000000`s and 0 page/console errors before finishing. Print exact file metrics and summary at the end.

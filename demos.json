@@ -1,0 +1,191 @@
+{
+  "title": "Fini 的模型实测馆 · Model Lab",
+  "subtitle": "前沿大模型纯代码前端、3D 物理与着色器盲测 / 同题横评标本库（非完整商业游戏，专注检验单轮直出上限）",
+  "repoUrl": "https://github.com/finiking/model-lab",
+  "wallUrl": "https://finiking.github.io/dsh-games/wall/",
+  "authorUrl": "https://x.com/FiniYang",
+  "updatedAt": "2026-11-15",
+  "demos": [
+    {
+      "id": "tp7-field-deck",
+      "title": "TP-7 桌面拉丝铝合金磁带机",
+      "enTitle": "Teenage Engineering TP-7 Field Recorder",
+      "date": "2026-11-15",
+      "category": "两句盲测",
+      "tags": ["工业拟物", "Three.js", "WebAudio 搓碟", "零外部资产"],
+      "audio": true,
+      "featured": true,
+      "summary": "两句话盲测直出、全程零外部模型与贴图。中心金属转盘匀速播放温暖合成器 Lo-Fi，鼠标按住直接物理刹停、正反拨动实时搓碟变调（Scratch & Pitch-bend），连底下的工程切割刻度垫和橙色螺旋音频线都是模型主动补的戏。",
+      "controlsHint": "先点左上角开启声音 → 鼠标按住中央金属转盘刹停 / 正反旋转搓碟变调 → 点击底部橙色录音与播放键、拨动左侧机械推杆",
+      "sourceDir": "demos/tp7-field-deck",
+      "xPostUrl": null,
+      "promptSummary": "两句话盲测原话（零追问、零返工直出）",
+      "prompt": "用纯代码（Three.js + WebAudio，零外部模型和贴图）在浏览器里做一台 Teenage Engineering TP-7 风格的桌面拉丝铝合金迷你磁带录音机。磁带转盘一直在匀速旋转播放一段温暖的合成器 Lo-Fi 循环乐，我可以用鼠标按住金属转盘直接物理刹停或正反搓碟变调（Scratch & Pitch-bend），侧面机械拨杆和橙色实体按键都能按下去并伴随清脆机械咔哒声和电平表跳动。",
+      "variants": [
+        {
+          "key": "hydrogen",
+          "label": "Gemini 4 Hydrogen",
+          "tier": "XHigh",
+          "family": "gemini",
+          "elapsed": "单轮直出",
+          "bundleSize": "1.33 MB",
+          "playUrl": "play/tp7-field-deck/",
+          "cover": "play/tp7-field-deck/cover.jpg",
+          "sourcePath": "demos/tp7-field-deck/src"
+        }
+      ]
+    },
+    {
+      "id": "pocket-planet",
+      "title": "掌中造物星盘 · 微缩行星演化球",
+      "enTitle": "Pocket Planet · Brass Astrolabe Terrarium",
+      "date": "2026-11-14",
+      "category": "AB 同题横评",
+      "tags": ["造化掌控", "微缩沙盘", "GLSL 海啸/冰封", "AB 同屏对比"],
+      "audio": false,
+      "featured": true,
+      "summary": "同一份「黄铜浑天仪水晶球 + 四大造化神力」规格书，对比 Gemini 4 Hydrogen 与 GPT-6.1 Sol (Max)。点击地表召唤炽热陨石掀起环球海啸、一键切入极地冰河与舞动极光、环赤道蒸汽小火车吐烟穿行。",
+      "controlsHint": "点击底部 4 枚造化按钮（春暖造林 / 陨石天降 / 极地冰封 / 晨昏拨盘），或直接点击星球任意位置精准砸下陨石；拖拽旋转浑天仪、滚轮缩放",
+      "sourceDir": "demos/pocket-planet",
+      "xPostUrl": "https://x.com/FiniYang/status/2121485828568592711",
+      "promptSummary": "黄铜浑天仪玻璃罩 + 低多边形活体星球 + 四大造化交互同题横评规格",
+      "prompt": "制作《掌中造物星盘 · 微缩行星演化球》(Pocket Planet: Brass Astrolabe Terrarium) —— Three.js + React Three Fiber + Postprocessing，零外部资产：\n1. 外层：带刻度铭文的旋转黄铜浑天仪环 + 高透菲涅尔玻璃球罩（内部星球保持清澈通透不发白）。\n2. 内核：低多边形活体微缩星球，含动态海岸泡沫水体着色器、翠绿平原、发光春林、雪峰、漂浮云环，以及沿赤道轨道吐烟环行的发光微缩火车。\n3. 四大造化交互：\n   - [1] 春暖造林：生长发光林木与花丛，火车提速\n   - [2] 陨石撞击（或点击星球表面任意位置）：召唤火焰陨石砸出熔岩坑，并掀起扩散全球的环形海啸波\n   - [3] 极地冰河与极光：海面冻结成折面冰架，两极升起翡翠/紫罗兰极光带\n   - [4] 晨昏星盘：平滑拨动黄金日照与生物发光夜景。",
+      "variants": [
+        {
+          "key": "hydrogen",
+          "label": "Gemini 4 Hydrogen",
+          "tier": "23m 08s",
+          "family": "gemini",
+          "elapsed": "23m 08s",
+          "bundleSize": "1.32 MB",
+          "playUrl": "play/pocket-planet/",
+          "cover": "play/pocket-planet/cover.jpg",
+          "sourcePath": "demos/pocket-planet/hydrogen/src"
+        },
+        {
+          "key": "sol",
+          "label": "GPT-6.1 Sol",
+          "tier": "Max · 40m 05s",
+          "family": "openai",
+          "elapsed": "40m 05s",
+          "bundleSize": "1.29 MB",
+          "playUrl": "play/pocket-planet-sol/",
+          "cover": "play/pocket-planet-sol/cover.jpg",
+          "sourcePath": "demos/pocket-planet/gpt-6.1-sol/src"
+        }
+      ]
+    },
+    {
+      "id": "pelican-perihelion",
+      "title": "近日点 · 3D 鹈鹕 360° 立体骑车",
+      "enTitle": "Perihelion · 3D Pelican Eclipse Loop",
+      "date": "2026-11-08",
+      "category": "AB 同题横评",
+      "tags": ["鹈鹕基准", "3D 运动学", "海上竖环", "日食镜头"],
+      "audio": true,
+      "featured": true,
+      "summary": "经典「鹈鹕骑自行车」的 3D 电影级升维题：戴红帽红围巾的白鹈鹕骑朱红竞速车，沿海上高架轨道加速冲进 360° 竖环、倒挂穿越日食。收录 GPT-6.2 Sol 与 GPT-6.2 Astra 两代灰度首测版本，重点观察双腿曲柄联动与登顶时围巾丝带的摆动物理。",
+      "controlsHint": "拖拽画面自由环绕骑手、滚轮缩放；底部控制台可拖动 18 秒时间轴、切换电影机位 / 自由视角、开启合成配乐（空格暂停）",
+      "sourceDir": "demos/pelican-perihelion",
+      "xPostUrl": "https://x.com/FiniYang/status/2119474691727671736",
+      "xPostUrlAlt": "https://x.com/FiniYang/status/2116856735390683281",
+      "promptSummary": "《近日点》3D 鹈鹕骑车穿越海上日食竖环实测题",
+      "prompt": "《近日点 · Perihelion》：制作一段实时三维可交互短篇（单 HTML 自包含交付）。一只戴红帽与长红围巾的白鹈鹕，骑一辆朱红色竞速自行车，沿着架在海面上的环形轨道加速冲刺，冲进巨大的 360° 垂直大竖环，在最高点倒挂穿过日食金环。要求左右脚踏 180° 反相真实踩踏联动、链条车轮同步旋转、登顶加速时红围巾丝带随风速自然摆动，支持时间轴拖拽、多机位切换与自由环绕观察。",
+      "variants": [
+        {
+          "key": "gpt62-sol",
+          "label": "GPT-6.2 Sol",
+          "tier": "灰度首测",
+          "family": "openai",
+          "elapsed": "2026-11-08",
+          "bundleSize": "789 KB",
+          "playUrl": "play/perihelion-sol/",
+          "cover": "play/perihelion-sol/cover.jpg",
+          "sourcePath": "demos/pelican-perihelion",
+          "postUrl": "https://x.com/FiniYang/status/2119474691727671736"
+        },
+        {
+          "key": "gpt62-astra",
+          "label": "GPT-6.2 Astra",
+          "tier": "灰度首测",
+          "family": "openai",
+          "elapsed": "2026-11-01",
+          "bundleSize": "1.39 MB",
+          "playUrl": "play/perihelion-astra/",
+          "cover": "play/perihelion-astra/cover.jpg",
+          "sourcePath": "demos/pelican-perihelion/astra-src",
+          "postUrl": "https://x.com/FiniYang/status/2116856735390683281"
+        }
+      ]
+    },
+    {
+      "id": "ashen-reach",
+      "title": "苍岚之境 · 3D 半开放世界 RPG 切片",
+      "enTitle": "Ashen Reach · 3D Action RPG Benchmark Slice",
+      "date": "2026-11-01",
+      "category": "单轮极限工程",
+      "tags": ["3D 动作切片", "角色步态", "刀光特效", "多模块架构"],
+      "audio": true,
+      "featured": false,
+      "summary": "GPT-6.2 Astra 灰度测试第二弹（原帖 6.2 万浏览）：检验单模型一次性组织 20+ 模块（地形地貌、角色手部与面部装配、急转换步步态、风刃与震地粒子特效、任务背包面板）的工程复杂度上限。",
+      "controlsHint": "WASD 移动 / Shift 冲刺闪避 / 鼠标左键连击挥砍 / 技能键释放风刃与震地冲击（注：此件为测模型工程上限的技术切片，非长线完整游戏）",
+      "sourceDir": "demos/ashen-reach",
+      "xPostUrl": "https://x.com/FiniYang/status/2116886715596243396",
+      "promptSummary": "GPT-6.2 Astra 3D 半开放世界动作 RPG 极限工程测试",
+      "prompt": "一口气用纯前端 WebGL / Three.js 做一个可直接跑起来的 3D 半开放世界动作 RPG 垂直切片《苍岚之境》，包含可探索高低差地形与遗迹、带步态与急转换步的主角第三人称操控、近战连段刀光与震地粒子特效、怪物交战反馈、合成音效与 HUD 面板。",
+      "variants": [
+        {
+          "key": "gpt62-astra",
+          "label": "GPT-6.2 Astra",
+          "tier": "灰度第二弹",
+          "family": "openai",
+          "elapsed": "单轮工程切片",
+          "bundleSize": "2.61 MB",
+          "playUrl": "play/ashen-reach/",
+          "cover": "play/ashen-reach/cover.jpg",
+          "sourcePath": "demos/ashen-reach/src"
+        }
+      ]
+    },
+    {
+      "id": "pelican-overdrive",
+      "title": "PELICAN // OVERDRIVE · 机甲鹈鹕骑车",
+      "enTitle": "Pelican Overdrive · Mecha SVG Kinematics",
+      "date": "2026-10-23",
+      "category": "AB 同题横评",
+      "tags": ["2D 矢量机甲", "180° 曲柄 IK", "内联 SVG", "氮气尾焰"],
+      "audio": false,
+      "featured": false,
+      "summary": "纯内联 SVG + 原生 JS 硬核矢量基准题：既要一眼认出带发光喉囊与分层金属羽片的机甲白鹈鹕，又要保证左右曲柄 180° 相位差、双脚贴合踏板与膝关节逆向弯曲，按 Space / BOOST 点燃青蓝反应炉喷口尾焰。",
+      "controlsHint": "打开即自动无缝骑行循环；点击画面右下角 BOOST 按钮或按空格键（Space）触发反应炉点亮与尾焰冲刺（对比 Argon 的氮气尾焰与 K3.1 Pro 的结构还原）",
+      "sourceDir": "demos/pelican-overdrive",
+      "xPostUrl": "https://x.com/FiniYang/status/2113689317545795727",
+      "promptSummary": "纯内联 SVG 机甲鹈鹕骑车 + 180° 脚踏曲柄运动学横评原题",
+      "prompt": "请直接制作一个酷炫机甲版「鹈鹕骑自行车」的可运行视觉作品。用一个完整HTML交付，主体由你原创绘制的内联SVG构成，CSS/JS全部内联，不使用外部图片、视频、字体或库。\n\n主角必须一眼认出是鹈鹕：长而厚的鸟喙、明显下喙喉囊、鸟类头颈与身躯比例；同时是设计精密的未来机甲。陶瓷白与深枪灰装甲，少量橙红警示涂装，青蓝发光反应炉，外露液压关节、线缆和分层金属羽片；鸟喙像航空器整流罩，半透明喉囊里有发光能量核心。不要把它画成普通机器人戴鸟头。\n\n鹈鹕以低伏竞速姿态骑一辆未来自行车，两个机械脚踩踏板，两翼末端抓住车把。自行车必须有清晰且合理的前后轮、车架、前叉、把手、曲柄、踏板、齿盘和链条。踩踏要持续自然，左右曲柄相差180度，脚始终贴着对应踏板，膝关节随之弯曲；车轮旋转、辐条、曲柄和链条的运动方向一致。提供正常骑行的无缝动画循环，另设一个小小的 BOOST 按钮或空格键，触发约2秒的反应炉点亮、加速、喷口尾焰和速度线增强。",
+      "variants": [
+        {
+          "key": "argon",
+          "label": "Gemini 4 Argon",
+          "tier": "SVG 原直出",
+          "family": "gemini",
+          "elapsed": "74 KB 单文件",
+          "bundleSize": "74 KB",
+          "playUrl": "play/pelican-overdrive-argon/",
+          "cover": "play/pelican-overdrive-argon/cover.jpg",
+          "sourcePath": "demos/pelican-overdrive/argon.html"
+        },
+        {
+          "key": "kimi-k31",
+          "label": "Kimi K3.1 Pro",
+          "tier": "SVG 原直出",
+          "family": "kimi",
+          "elapsed": "36 KB 单文件",
+          "bundleSize": "36 KB",
+          "playUrl": "play/pelican-overdrive-kimi/",
+          "cover": "play/pelican-overdrive-kimi/cover.jpg",
+          "sourcePath": "demos/pelican-overdrive/kimi-k3.1-pro.html"
+        }
+      ]
+    }
+  ]
+}

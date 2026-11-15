@@ -1,0 +1,33 @@
+:root {
+  color-scheme: light;
+  --bg-studio: #cfd4dc;
+  --te-orange: #ff4f00;
+  --te-ink: #1a1d22;
+  --te-muted: #5a616d;
+  --te-glass: rgba(250, 251, 253, 0.72);
+  --te-border: rgba(26, 29, 34, 0.14);
+}
+
+* {
+  box-sizing: border-box;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: var(--bg-studio);
+  font-family: ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace;
+  color: var(--te-ink);
+}
+
+canvas {
+  display: block;
+  touch-action: none;
+}
